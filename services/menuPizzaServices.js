@@ -6,6 +6,9 @@ export const fetchPizzasByCategory = async (categoryId) => {
     const response = await axios.get(
       `${API_URL}/getPizzabyCategory?categoryId=${categoryId}`
     );
+    console.log("FHIII");
+    console.log("Fetched pizzas by category:", response.data);
+    
     return response.data;
   } catch (error) {
     console.error("Error fetching pizzas by category:", error);

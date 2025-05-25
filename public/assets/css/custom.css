@@ -1,3 +1,11 @@
 .custom-hero-pizza{
     margin-top: -5px;
 }
+
+
+.menu-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+}

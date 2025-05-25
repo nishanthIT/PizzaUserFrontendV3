@@ -269,17 +269,20 @@ const page = () => {
                 data-aos-duration={1500}
                 data-aos-offset={50}
               >
-                <div className="product-image-wrapper">
+                <div className="product-image-wrapper"  style={{
+    display: "flex",
+    justifyContent: "center",
+  }}>
                   <img
                     className="product-image"
                     src={`${API_URL}/images/pizza-${pizza.id}.png`}
                     alt={pizza.name}
                     style={{
-                      width: "100%",
+                      width: "40%",
                       height: "auto",
                       objectFit: "cover",
                       borderRadius: "12px",
-                      boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                      //boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
                     }}
                   />
                 </div>
@@ -489,7 +492,18 @@ const page = () => {
                 {/* Ingredients Section */}
                 {!isCombo && (
                   <div className="ingredients-section mb-4">
-                    <h5
+                    {ingredients.length > 0 && (
+                      <h5
+                        className="mb-3"
+                        style={{
+                          fontSize: "1.2rem",
+                          fontWeight: "600",
+                        }}
+                      >
+                        Ingredients
+                      </h5>
+                    )}
+                    {/* <h5
                       style={{
                         fontSize: "1.2rem",
                         fontWeight: "600",
@@ -497,7 +511,7 @@ const page = () => {
                       }}
                     >
                       Ingredients
-                    </h5>
+                    </h5> */}
                     <ul
                       className="ingredients-list"
                       style={{ listStyle: "none", padding: "0" }}
@@ -593,7 +607,18 @@ const page = () => {
                 {/* Toppings Section */}
                 {!isCombo && (
                   <div className="toppings-section mb-4">
-                    <h5
+                    { toppings.length > 0 && (
+                      <h5
+                        className="mb-3"
+                        style={{
+                          fontSize: "1.2rem",
+                          fontWeight: "600",
+                        }}
+                      >
+                        Toppings
+                      </h5>
+                    )}
+                    {/* <h5
                       style={{
                         fontSize: "1.2rem",
                         fontWeight: "600",
@@ -601,7 +626,7 @@ const page = () => {
                       }}
                     >
                       Toppings
-                    </h5>
+                    </h5> */}
                     <ul
                       className="toppings-list"
                       style={{ listStyle: "none", padding: "0" }}

@@ -44,11 +44,11 @@ const Page = () => {
   }, []);
 
   // Shipping and tax calculations
-  const deliveryFee = deliveryMethod === "delivery" ? 50 : 0;
-  const shippingFee = deliveryMethod === "delivery" ? 3.99 : 0;
+  const deliveryFee = deliveryMethod === "delivery" ? 1.50 : 0;
+  //const shippingFee = deliveryMethod === "delivery" ? 3.99 : 0;
   const taxRate = 0.08; // 8% tax
-  const taxAmount = totalPrice * taxRate;
-  const finalTotal = totalPrice + shippingFee + deliveryFee + taxAmount;
+  const taxAmount = totalPrice ;
+  const finalTotal = totalPrice  + deliveryFee ;
 
   // Handle send OTP
   const handleSendOTP = async (e) => {
@@ -202,7 +202,7 @@ const Page = () => {
           body: JSON.stringify({
             cartItems,
             finalTotal,
-            shippingFee,
+           // shippingFee,
             deliveryFee,
             taxAmount,
             deliveryMethod,
@@ -395,7 +395,7 @@ const Page = () => {
                               Home Delivery
                             </label>
                             <p className="mb-0 small text-muted">
-                              £50.00 delivery fee
+                              £1.50 delivery fee
                             </p>
                           </div>
                         </div>
@@ -547,20 +547,20 @@ const Page = () => {
                       </div>
                       {deliveryMethod === "delivery" && (
                         <>
-                          <div className="d-flex justify-content-between mb-2">
+                          {/* <div className="d-flex justify-content-between mb-2">
                             <span>Shipping</span>
                             <span>£{shippingFee.toFixed(2)}</span>
-                          </div>
+                          </div> */}
                           <div className="d-flex justify-content-between mb-2">
                             <span>Delivery Fee</span>
                             <span>£{deliveryFee.toFixed(2)}</span>
                           </div>
                         </>
                       )}
-                      <div className="d-flex justify-content-between mb-3">
+                      {/* <div className="d-flex justify-content-between mb-3">
                         <span>Tax</span>
                         <span>£{taxAmount.toFixed(2)}</span>
-                      </div>
+                      </div> */}
                       <div className="d-flex justify-content-between border-top pt-3 mb-4">
                         <span className="fw-bold">Total</span>
                         <span className="fw-bold">

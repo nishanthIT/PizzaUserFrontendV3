@@ -10,16 +10,25 @@ import {
   fetchAllCategories,
   fetchPizzasByCategory,
 } from "@/services/menuPizzaServices";
+import { CupSoda, Pizza, Dessert, Hamburger} from "lucide-react"; // Import Lucide icons
 
 // Helper function to get icon based on category name
 const getCategoryIcon = (categoryName) => {
-  const iconMap = {
-    "Non-Vegetarian": "flaticon-cupcake",
-    Vegetarian: "flaticon-broccoli",
-    Seafood: "flaticon-crab",
-    Drinks: "flaticon-poinsettia",
+  // const iconMap = {
+  //   DESSERTS: "flaticon-cupcake",
+  //   Vegetarian: "flaticon-broccoli",
+  //   Pizza: "flaticon-pizza",
+  //   Drinks: "flaticon-poinsettia",
+  // };
+    const iconMap = {
+    DESSERTS: <Dessert size={40} color="#ff0000" />,
+    //Vegetarian: <Broccoli size={20} />,
+    Pizza: <Pizza size={40} color="#ff0000" />,
+    //BURGERS:  <Hamburger />,
+    Drinks: <CupSoda size={40}  color="#ff0000"/>,
   };
-  return iconMap[categoryName] || "flaticon-cupcake";
+
+  return iconMap[categoryName] || <Pizza size={20} />;
 };
 
 // Helper function to get base price from sizes

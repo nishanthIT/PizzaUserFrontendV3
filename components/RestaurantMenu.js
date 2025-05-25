@@ -123,7 +123,9 @@ const RestaurantMenu = ({
                   className="nav-link"
                   eventKey={menu.event}
                 >
-                  <i className={menu.icon} />
+                  {/* <i className={menu.icon} /> */}
+                  {/* <span className="menu-icon">{menu.icon}</span> */}
+
                   <span>{menu.title}</span>
                 </Nav.Link>
               </Nav.Item>
@@ -152,6 +154,7 @@ const RestaurantMenu = ({
                       data-aos-offset={50}
                     >
                       {menu.items.map(
+                        
                         (item, i) =>
                           i < Math.ceil(menu.items.length / 2) && (
                             <Link
