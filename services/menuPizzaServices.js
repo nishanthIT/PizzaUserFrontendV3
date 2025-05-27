@@ -8,7 +8,7 @@ export const fetchPizzasByCategory = async (categoryId) => {
     );
     console.log("FHIII");
     console.log("Fetched pizzas by category:", response.data);
-    
+
     return response.data;
   } catch (error) {
     console.error("Error fetching pizzas by category:", error);

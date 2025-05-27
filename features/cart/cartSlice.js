@@ -44,10 +44,9 @@
 //     },
 //     incrementQuantity(state, action) {
 //       const index = action.payload;
-    
+
 //       const existingItem = state.items[index];
-    
-     
+
 //       if (existingItem) {
 //         existingItem.quantity += 1;
 //         existingItem.price += existingItem.eachprice;
@@ -55,12 +54,11 @@
 //         state.totalPrice += existingItem.eachprice;
 //       }
 
-
 //         //console.log(existingItem.quantity)
 //         console.log(existingItem.price)
 
 //         console.log(state.totalPrice)
-      
+
 //     },
 //     decrementQuantity(state, action) {
 //       const index = action.payload;
@@ -77,7 +75,7 @@
 //       state.totalQuantity = 0;
 //       state.totalPrice = 0;
 //     },
-    
+
 //   },
 // });
 
@@ -88,148 +86,141 @@
 // export const selectCartTotalQuantity = (state) => state.cart.totalQuantity;
 // export const selectCartTotalPrice = (state) => state.cart.totalPrice;
 
+// import { createSlice } from "@reduxjs/toolkit";
 
+// const initialState = {
+//   items: [], // Cart items
+//   totalQuantity: 0, // Total quantity of items in the cart
+//   totalPrice: 0, // Total price of all items
+// };
 
-  // import { createSlice } from "@reduxjs/toolkit";
+// const cartSlice = createSlice({
+//   name: "cart",
+//   initialState,
+//   reducers: {
+//     addItem(state, action) {
+//       const newItem = action.payload;
+//       const existingItem = state.items.find(
+//         (item) =>
+//           item.title === newItem.title &&
+//           JSON.stringify(item.ingredients) === JSON.stringify(newItem.ingredients) &&
+//           JSON.stringify(item.toppings) === JSON.stringify(newItem.toppings) &&
+//           item.size === newItem.size
+//       );
 
-  // const initialState = {
-  //   items: [], // Cart items
-  //   totalQuantity: 0, // Total quantity of items in the cart
-  //   totalPrice: 0, // Total price of all items
-  // };
+//       if (existingItem) {
+//         existingItem.quantity += 1;
+//         // Add eachprice field if not exists
+//         if (!existingItem.eachprice) {
+//           existingItem.eachprice = parseFloat(newItem.price);
+//         }
+//         existingItem.price = existingItem.eachprice * existingItem.quantity;
+//       } else {
+//         state.items.push({
+//           ...newItem,
+//           quantity: newItem.quantity ? parseInt(newItem.quantity) : 1,
+//           eachprice: parseFloat(newItem.price),
+//           price: parseFloat(newItem.price),
+//         });
+//       }
+//       state.totalQuantity += 1;
+//       state.totalPrice += parseFloat(newItem.price);
+//     },
 
-  // const cartSlice = createSlice({
-  //   name: "cart",
-  //   initialState,
-  //   reducers: {
-  //     addItem(state, action) {
-  //       const newItem = action.payload;
-  //       const existingItem = state.items.find(
-  //         (item) =>
-  //           item.title === newItem.title &&
-  //           JSON.stringify(item.ingredients) === JSON.stringify(newItem.ingredients) &&
-  //           JSON.stringify(item.toppings) === JSON.stringify(newItem.toppings) &&
-  //           item.size === newItem.size
-  //       );
+//     removeItem(state, action) {
+//       const index = action.payload;
+//       const existingItem = state.items[index];
+//       if (existingItem) {
+//         state.totalQuantity -= existingItem.quantity;
+//         state.totalPrice -= existingItem.price; // Use the current total price for this item
+//         state.items.splice(index, 1); // Remove the item
+//       }
+//     },
 
-  //       if (existingItem) {
-  //         existingItem.quantity += 1;
-  //         // Add eachprice field if not exists
-  //         if (!existingItem.eachprice) {
-  //           existingItem.eachprice = parseFloat(newItem.price);
-  //         }
-  //         existingItem.price = existingItem.eachprice * existingItem.quantity;
-  //       } else {
-  //         state.items.push({
-  //           ...newItem,
-  //           quantity: newItem.quantity ? parseInt(newItem.quantity) : 1,
-  //           eachprice: parseFloat(newItem.price),
-  //           price: parseFloat(newItem.price),
-  //         });
-  //       }
-  //       state.totalQuantity += 1;
-  //       state.totalPrice += parseFloat(newItem.price);
-  //     },
-      
-  //     removeItem(state, action) {
-  //       const index = action.payload;
-  //       const existingItem = state.items[index];
-  //       if (existingItem) {
-  //         state.totalQuantity -= existingItem.quantity;
-  //         state.totalPrice -= existingItem.price; // Use the current total price for this item
-  //         state.items.splice(index, 1); // Remove the item
-  //       }
-  //     },
-      
-  //     incrementQuantity(state, action) {
-  //       const index = action.payload;
-  //       const existingItem = state.items[index];
-        
-  //       // if (existingItem) {
-  //       //   // Ensure eachprice exists
-  //       //   if (!existingItem.eachprice) {
-  //       //     existingItem.eachprice = parseFloat(existingItem.price) / existingItem.quantity;
-  //       //   }
-          
-  //       //   existingItem.quantity += 1;
-  //       //   existingItem.price = existingItem.eachprice * existingItem.quantity;
-  //       //   state.totalQuantity += 1;
-  //       //   state.totalPrice += existingItem.eachprice;
-  //       // }
+//     incrementQuantity(state, action) {
+//       const index = action.payload;
+//       const existingItem = state.items[index];
 
-  //        if (existingItem) {
-  //   const eachprice = existingItem.eachprice;
+//       // if (existingItem) {
+//       //   // Ensure eachprice exists
+//       //   if (!existingItem.eachprice) {
+//       //     existingItem.eachprice = parseFloat(existingItem.price) / existingItem.quantity;
+//       //   }
 
-  //   existingItem.quantity += 1;
-  //   existingItem.price = eachprice * existingItem.quantity;
-  //   state.totalQuantity += 1;
-  //   state.totalPrice += eachprice;
-  // }
-  //     },
-      
-  //     decrementQuantity(state, action) {
-  //       const index = action.payload;
-  //       const existingItem = state.items[index];
-        
-  //       if (existingItem && existingItem.quantity > 1) {
-  //         // Ensure eachprice exists
-  //         if (!existingItem.eachprice) {
-  //           existingItem.eachprice = parseFloat(existingItem.price) / existingItem.quantity;
-  //         }
-          
-  //         existingItem.quantity -= 1;
-  //         existingItem.price = existingItem.eachprice * existingItem.quantity;
-  //         state.totalQuantity -= 1;
-  //         state.totalPrice -= existingItem.eachprice;
-  //       }
-  //     },
-      
-  //     clearCart(state) {
-  //       state.items = [];
-  //       state.totalQuantity = 0;
-  //       state.totalPrice = 0;
-  //     },
-  // setCart(state, action) {
-  //   const items = action.payload;
+//       //   existingItem.quantity += 1;
+//       //   existingItem.price = existingItem.eachprice * existingItem.quantity;
+//       //   state.totalQuantity += 1;
+//       //   state.totalPrice += existingItem.eachprice;
+//       // }
 
-  //   if (!Array.isArray(items)) {
-  //     console.error("setCart payload must be an array");
-  //     return;
-  //   }
+//        if (existingItem) {
+//   const eachprice = existingItem.eachprice;
 
-  //   const validItems = items.map((item) => {
-  //     const quantity = parseInt(item.quantity) || 1;
-  //     const eachprice = parseFloat(item.eachprice || item.price / quantity);
+//   existingItem.quantity += 1;
+//   existingItem.price = eachprice * existingItem.quantity;
+//   state.totalQuantity += 1;
+//   state.totalPrice += eachprice;
+// }
+//     },
 
-  //     return {
-  //       ...item,
-  //       quantity,
-  //       eachprice,
-  //       price: eachprice * quantity,
-  //     };
-  //   });
+//     decrementQuantity(state, action) {
+//       const index = action.payload;
+//       const existingItem = state.items[index];
 
-  //   state.items = validItems;
-  //   state.totalQuantity = validItems.reduce((sum, item) => sum + item.quantity, 0);
-  //   state.totalPrice = validItems.reduce((sum, item) => sum + item.price, 0);
-  // }
+//       if (existingItem && existingItem.quantity > 1) {
+//         // Ensure eachprice exists
+//         if (!existingItem.eachprice) {
+//           existingItem.eachprice = parseFloat(existingItem.price) / existingItem.quantity;
+//         }
 
+//         existingItem.quantity -= 1;
+//         existingItem.price = existingItem.eachprice * existingItem.quantity;
+//         state.totalQuantity -= 1;
+//         state.totalPrice -= existingItem.eachprice;
+//       }
+//     },
 
-  //   },
-  // });
+//     clearCart(state) {
+//       state.items = [];
+//       state.totalQuantity = 0;
+//       state.totalPrice = 0;
+//     },
+// setCart(state, action) {
+//   const items = action.payload;
 
-  // export const { addItem, removeItem, incrementQuantity, decrementQuantity, clearCart,setCart } = cartSlice.actions;
-  // export default cartSlice.reducer;
+//   if (!Array.isArray(items)) {
+//     console.error("setCart payload must be an array");
+//     return;
+//   }
 
-  // export const selectCartItems = (state) => state.cart.items;
-  // export const selectCartTotalQuantity = (state) => state.cart.totalQuantity;
-  // export const selectCartTotalPrice = (state) => state.cart.totalPrice;
+//   const validItems = items.map((item) => {
+//     const quantity = parseInt(item.quantity) || 1;
+//     const eachprice = parseFloat(item.eachprice || item.price / quantity);
 
+//     return {
+//       ...item,
+//       quantity,
+//       eachprice,
+//       price: eachprice * quantity,
+//     };
+//   });
 
+//   state.items = validItems;
+//   state.totalQuantity = validItems.reduce((sum, item) => sum + item.quantity, 0);
+//   state.totalPrice = validItems.reduce((sum, item) => sum + item.price, 0);
+// }
 
+//   },
+// });
 
+// export const { addItem, removeItem, incrementQuantity, decrementQuantity, clearCart,setCart } = cartSlice.actions;
+// export default cartSlice.reducer;
 
-  import { createSlice } from "@reduxjs/toolkit";
+// export const selectCartItems = (state) => state.cart.items;
+// export const selectCartTotalQuantity = (state) => state.cart.totalQuantity;
+// export const selectCartTotalPrice = (state) => state.cart.totalPrice;
+
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   items: [],
@@ -250,7 +241,8 @@ const cartSlice = createSlice({
         (item) =>
           item.title === newItem.title &&
           item.size === newItem.size &&
-          JSON.stringify(item.ingredients) === JSON.stringify(newItem.ingredients) &&
+          JSON.stringify(item.ingredients) ===
+            JSON.stringify(newItem.ingredients) &&
           JSON.stringify(item.toppings) === JSON.stringify(newItem.toppings)
       );
 
@@ -336,7 +328,10 @@ const cartSlice = createSlice({
       });
 
       state.items = validItems;
-      state.totalQuantity = validItems.reduce((sum, item) => sum + item.quantity, 0);
+      state.totalQuantity = validItems.reduce(
+        (sum, item) => sum + item.quantity,
+        0
+      );
       state.totalPrice = validItems.reduce((sum, item) => sum + item.price, 0);
     },
   },

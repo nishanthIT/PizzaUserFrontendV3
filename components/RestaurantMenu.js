@@ -4,8 +4,12 @@ import { Nav, Tab } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { API_URL } from "@/services/config";
 
-const calculatePrice = (basePrice = 0, ingredients = [], toppings = []) => {
-  const ingredientCost = ingredients.reduce(
+const calculatePrice = (item) => {
+  if (item.type === "other") {
+    return item.price;
+  }
+
+  const ingredientCost = (item.ingredients || []).reduce(
     (sum, ingredient) =>
       ingredient.quantity > 0
         ? sum + ingredient.price * ingredient.quantity
@@ -13,30 +17,62 @@ const calculatePrice = (basePrice = 0, ingredients = [], toppings = []) => {
     0
   );
 
-  const toppingCost = toppings.reduce(
+  const toppingCost = (item.toppings || []).reduce(
     (sum, topping) =>
       topping.quantity > 0 ? sum + topping.price * topping.quantity : sum,
     0
   );
   const total =
-    Number(basePrice) + Number(ingredientCost) + Number(toppingCost);
+    Number(item.price) + Number(ingredientCost) + Number(toppingCost);
 
   return total.toFixed(1);
 };
 
+const getItemLink = (item) => {
+  if (item.type === "other") {
+    return {
+      pathname: "/otherItem-details",
+      query: {
+        id: item.id,
+        title: item.title,
+        price: item.price,
+        desc: item.decs,
+        img: item.img,
+      },
+    };
+  }
+
+  return {
+    pathname: "/product-details",
+    query: {
+      id: item.id,
+      title: item.title,
+      price: item.price,
+      desc: item.decs,
+      img: item.img,
+      ingredients: JSON.stringify(item.ingredients),
+      toppings: JSON.stringify(item.toppings),
+    },
+  };
+};
+
 const Item = ({ item }) => {
-  console.log(item);
   return (
     <div className="food-menu-item style-two custom-food-item">
       <div className="image">
-        <img src={`${API_URL}/images/pizza-${item.id}.png`} alt={item.title} />
+        <img
+          src={
+            item.type === "other"
+              ? `${API_URL}/images/other-${item.id}.png`
+              : `${API_URL}/images/pizza-${item.id}.png`
+          }
+          alt={item.title}
+        />
       </div>
       <div className="content">
         <h5>
           <span className="title">{item.title}</span> <span className="dots" />{" "}
-          <span className="price">
-            ${calculatePrice(item.price, item.ingredients, item.toppings)}
-          </span>
+          <span className="price">${calculatePrice(item)}</span>
         </h5>
         <p>{item.decs}</p>
       </div>
@@ -92,7 +128,7 @@ const RestaurantMenu = ({
               data-aos-duration={1500}
               data-aos-offset={50}
             >
-              <h2>Explore Our Delicious Pizza Menu</h2>
+              <h2>Explore Our Delicious Menu</h2>
             </div>
           </div>
         </div>
@@ -123,9 +159,6 @@ const RestaurantMenu = ({
                   className="nav-link"
                   eventKey={menu.event}
                 >
-                  {/* <i className={menu.icon} /> */}
-                  {/* <span className="menu-icon">{menu.icon}</span> */}
-
                   <span>{menu.title}</span>
                 </Nav.Link>
               </Nav.Item>
@@ -143,7 +176,7 @@ const RestaurantMenu = ({
                     <div className="spinner-border text-primary" role="status">
                       <span className="visually-hidden">Loading...</span>
                     </div>
-                    <p className="mt-3">Loading delicious pizzas...</p>
+                    <p className="mt-3">Loading delicious items...</p>
                   </div>
                 ) : menu.items && menu.items.length > 0 ? (
                   <div className="row gap-90">
@@ -154,24 +187,9 @@ const RestaurantMenu = ({
                       data-aos-offset={50}
                     >
                       {menu.items.map(
-                        
                         (item, i) =>
                           i < Math.ceil(menu.items.length / 2) && (
-                            <Link
-                              key={item.id}
-                              href={{
-                                pathname: "/product-details",
-                                query: {
-                                  id: item.id,
-                                  title: item.title,
-                                  price: item.price,
-                                  desc: item.decs,
-                                  img: item.img,
-                                  ingredients: JSON.stringify(item.ingredients),
-                                  toppings: JSON.stringify(item.toppings),
-                                },
-                              }}
-                            >
+                            <Link key={item.id} href={getItemLink(item)}>
                               <Item item={item} />
                             </Link>
                           )
@@ -186,21 +204,7 @@ const RestaurantMenu = ({
                       {menu.items.map(
                         (item, i) =>
                           i >= Math.ceil(menu.items.length / 2) && (
-                            <Link
-                              key={item.id}
-                              href={{
-                                pathname: "/product-details",
-                                query: {
-                                  id: item.id,
-                                  title: item.title,
-                                  price: item.price,
-                                  desc: item.decs,
-                                  img: item.img,
-                                  ingredients: JSON.stringify(item.ingredients),
-                                  toppings: JSON.stringify(item.toppings),
-                                },
-                              }}
-                            >
+                            <Link key={item.id} href={getItemLink(item)}>
                               <Item item={item} />
                             </Link>
                           )
@@ -209,7 +213,7 @@ const RestaurantMenu = ({
                   </div>
                 ) : (
                   <div className="text-center py-5">
-                    {/* <p>Loading...</p> */}
+                    <p>No items available in this category</p>
                   </div>
                 )}
               </Tab.Pane>

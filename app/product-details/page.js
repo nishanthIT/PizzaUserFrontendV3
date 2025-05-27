@@ -269,10 +269,13 @@ const page = () => {
                 data-aos-duration={1500}
                 data-aos-offset={50}
               >
-                <div className="product-image-wrapper"  style={{
-    display: "flex",
-    justifyContent: "center",
-  }}>
+                <div
+                  className="product-image-wrapper"
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                  }}
+                >
                   <img
                     className="product-image"
                     src={`${API_URL}/images/pizza-${pizza.id}.png`}
@@ -607,7 +610,7 @@ const page = () => {
                 {/* Toppings Section */}
                 {!isCombo && (
                   <div className="toppings-section mb-4">
-                    { toppings.length > 0 && (
+                    {toppings.length > 0 && (
                       <h5
                         className="mb-3"
                         style={{

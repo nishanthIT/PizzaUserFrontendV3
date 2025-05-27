@@ -10,7 +10,8 @@ import {
   fetchAllCategories,
   fetchPizzasByCategory,
 } from "@/services/menuPizzaServices";
-import { CupSoda, Pizza, Dessert, Hamburger} from "lucide-react"; // Import Lucide icons
+import { CupSoda, Pizza, Dessert, Hamburger } from "lucide-react"; // Import Lucide icons
+import { API_URL } from "@/services/config";
 
 // Helper function to get icon based on category name
 const getCategoryIcon = (categoryName) => {
@@ -20,12 +21,12 @@ const getCategoryIcon = (categoryName) => {
   //   Pizza: "flaticon-pizza",
   //   Drinks: "flaticon-poinsettia",
   // };
-    const iconMap = {
+  const iconMap = {
     DESSERTS: <Dessert size={40} color="#ff0000" />,
     //Vegetarian: <Broccoli size={20} />,
     Pizza: <Pizza size={40} color="#ff0000" />,
     //BURGERS:  <Hamburger />,
-    Drinks: <CupSoda size={40}  color="#ff0000"/>,
+    Drinks: <CupSoda size={40} color="#ff0000" />,
   };
 
   return iconMap[categoryName] || <Pizza size={20} />;
@@ -45,6 +46,7 @@ const MenuPizzaPage = () => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [pizzas, setPizzas] = useState([]);
+  const [otherItems, setOtherItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -75,43 +77,57 @@ const MenuPizzaPage = () => {
     loadCategories();
   }, []);
 
-  // Fetch pizzas when selectedCategory changes
+  // Fetch pizzas and other items when selectedCategory changes
   useEffect(() => {
-    const loadPizzas = async () => {
+    const loadItems = async () => {
       if (!selectedCategory) {
-        console.log("No category selected, skipping pizza load");
+        console.log("No category selected, skipping items load");
         return;
       }
 
       try {
         setLoading(true);
-        console.log("Loading pizzas for category:", selectedCategory);
-        const response = await fetchPizzasByCategory(selectedCategory);
-        console.log("Pizza API Response:", response);
+        console.log("Loading items for category:", selectedCategory);
 
-        // Handle different possible response structures
+        // Fetch both pizzas and other items in parallel
+        const [pizzaResponse, otherItemsResponse] = await Promise.all([
+          fetchPizzasByCategory(selectedCategory),
+          fetch(
+            `${API_URL}/getOtherItemByCategory?categoryId=${selectedCategory}`
+          ).then((res) => res.json()),
+        ]);
+
+        console.log("Pizza API Response:", pizzaResponse);
+        console.log("Other Items API Response:", otherItemsResponse);
+
+        // Handle pizza data
         let pizzasData = [];
-        if (response?.data) {
-          if (Array.isArray(response.data)) {
-            pizzasData = response.data;
+        if (pizzaResponse?.data) {
+          if (Array.isArray(pizzaResponse.data)) {
+            pizzasData = pizzaResponse.data;
           } else if (
-            response.data.pizzas &&
-            Array.isArray(response.data.pizzas)
+            pizzaResponse.data.pizzas &&
+            Array.isArray(pizzaResponse.data.pizzas)
           ) {
-            pizzasData = response.data.pizzas;
+            pizzasData = pizzaResponse.data.pizzas;
           }
         }
         console.log("Processed pizzas data:", pizzasData);
         setPizzas(pizzasData);
+
+        // Handle other items data
+        if (otherItemsResponse) {
+          setOtherItems(otherItemsResponse);
+        }
       } catch (err) {
-        console.error("Error loading pizzas:", err);
-        setError("Failed to load pizzas. Please try again later.");
+        console.error("Error loading items:", err);
+        setError("Failed to load items. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
-    loadPizzas();
+    loadItems();
   }, [selectedCategory]);
 
   // Safely format categories
@@ -125,16 +141,11 @@ const MenuPizzaPage = () => {
       }))
     : [];
 
-  // Safely format pizzas
+  // Format pizzas for menu
   const formatPizzasForMenu = (pizzas) => {
-    console.log("Formatting pizzas:", pizzas);
-    if (!Array.isArray(pizzas)) {
-      console.log("Pizzas is not an array, returning empty array");
-      return [];
-    }
+    if (!Array.isArray(pizzas)) return [];
 
-    const formattedPizzas = pizzas.map((pizza) => {
-      console.log("Processing pizza:", pizza);
+    return pizzas.map((pizza) => {
       const sizes = pizza?.sizes
         ? typeof pizza.sizes === "string"
           ? JSON.parse(pizza.sizes)
@@ -149,6 +160,7 @@ const MenuPizzaPage = () => {
         img: pizza?.imageUrl
           ? `/uploads/${pizza.imageUrl}`
           : "/assets/images/food/pm-food1.png",
+        type: "pizza",
         ingredients: Array.isArray(pizza?.defaultIngredients)
           ? pizza.defaultIngredients.map((ing) => ({
               id: ing?.ingredientId || Math.random().toString(),
@@ -169,15 +181,32 @@ const MenuPizzaPage = () => {
           : [],
       };
     });
+  };
 
-    console.log("Formatted pizzas:", formattedPizzas);
-    return formattedPizzas;
+  // Format other items for menu
+  const formatOtherItemsForMenu = (items) => {
+    if (!Array.isArray(items)) return [];
+
+    return items.map((item) => ({
+      id: item?.id || Math.random().toString(),
+      title: item?.name || "Unnamed Item",
+      price: item?.price || 0,
+      decs: item?.description || "Delicious item",
+      img: item?.imageUrl || "/assets/images/food/pm-food1.png",
+      type: "other",
+    }));
   };
 
   // Create menu items with proper fallbacks
   const menuItems = formattedCategories.map((category) => {
-    const items =
+    const categoryPizzas =
       category.id === selectedCategory ? formatPizzasForMenu(pizzas) : [];
+    const categoryOtherItems =
+      category.id === selectedCategory
+        ? formatOtherItemsForMenu(otherItems)
+        : [];
+    const items = [...categoryPizzas, ...categoryOtherItems];
+
     console.log(`Menu items for category ${category.id}:`, items);
     return {
       ...category,

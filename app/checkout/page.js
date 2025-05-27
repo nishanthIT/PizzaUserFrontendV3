@@ -44,11 +44,11 @@ const Page = () => {
   }, []);
 
   // Shipping and tax calculations
-  const deliveryFee = deliveryMethod === "delivery" ? 1.50 : 0;
+  const deliveryFee = deliveryMethod === "delivery" ? 1.5 : 0;
   //const shippingFee = deliveryMethod === "delivery" ? 3.99 : 0;
   const taxRate = 0.08; // 8% tax
-  const taxAmount = totalPrice ;
-  const finalTotal = totalPrice  + deliveryFee ;
+  const taxAmount = totalPrice;
+  const finalTotal = totalPrice + deliveryFee;
 
   // Handle send OTP
   const handleSendOTP = async (e) => {
@@ -193,6 +193,17 @@ const Page = () => {
     try {
       setIsProcessing(true); // Show loader while processing
 
+      // Add logging to verify cart items
+      console.log(
+        "Cart items being sent:",
+        cartItems.map((item) => ({
+          isOtherItem: item.isOtherItem,
+          otherItemId: item.otherItemId,
+          title: item.title,
+          price: item.price,
+        }))
+      );
+
       const res = await fetch(
         "http://localhost:3000/api/create-checkout-session",
         {
@@ -202,7 +213,7 @@ const Page = () => {
           body: JSON.stringify({
             cartItems,
             finalTotal,
-           // shippingFee,
+            // shippingFee,
             deliveryFee,
             taxAmount,
             deliveryMethod,
