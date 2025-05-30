@@ -1,4 +1,4 @@
-import { AboutUs4 } from "@/components/AboutUs";
+//import { AboutUs4 } from "@/components/AboutUs";
 import Burger from "@/components/Burger";
 import CategoryBanner from "@/components/CategoryBanner";
 import Headline from "@/components/Headline";
@@ -12,7 +12,7 @@ const page = () => {
       <PageBanner pageTitle={"Menu Restaurant"} />
       {/* Page Banner End */}
       {/* About Us Area start */}
-      <AboutUs4 />
+      {/* <AboutUs4 /> */}
       {/* About Us Area end */}
       {/* Headline area start */}
       <Headline />
