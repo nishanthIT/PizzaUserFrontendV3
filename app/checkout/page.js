@@ -61,7 +61,7 @@ const Page = () => {
       const cleaned = mobileNumber.replace(/\D/g, "");
       const finalNumber = cleaned.startsWith("") ? cleaned : `${cleaned}`;
 
-      const response = await fetch("http://localhost:3000/api/otp", {
+      const response = await fetch("https://backend.addiscombepizza.co.uk/api/otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -98,7 +98,7 @@ const Page = () => {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3000/api/verify-otp", {
+      const response = await fetch("https://backend.addiscombepizza.co.uk/api/verify-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,7 +118,7 @@ const Page = () => {
         try {
           console.log("Checking auth and syncing cart...");
 
-          const res = await axios.get("http://localhost:3000/api/check-auth", {
+          const res = await axios.get("https://backend.addiscombepizza.co.uk/api/check-auth", {
             withCredentials: true,
           });
 
@@ -127,7 +127,7 @@ const Page = () => {
 
             // Clear cart first
             const clearRes = await axios.post(
-              "http://localhost:3000/api/cart/clear",
+              "https://backend.addiscombepizza.co.uk/api/cart/clear",
               {},
               { withCredentials: true }
             );
@@ -135,7 +135,7 @@ const Page = () => {
 
             // Sync cart
             const syncRes = await axios.post(
-              "http://localhost:3000/api/cart/sync",
+              "https://backend.addiscombepizza.co.uk/api/cart/sync",
               { cartItems },
               { withCredentials: true }
             );
@@ -205,7 +205,7 @@ const Page = () => {
       );
 
       const res = await fetch(
-        "http://localhost:3000/api/create-checkout-session",
+        "https://backend.addiscombepizza.co.uk/api/create-checkout-session",
         {
           method: "POST",
           credentials: "include",

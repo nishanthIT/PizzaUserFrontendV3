@@ -362,8 +362,8 @@ const page = () => {
                               }}
                             >
                               {sizeOption}
-                              {sizeOption === "Medium" && " (+£4)"}
-                              {sizeOption === "Large" && " (+£6)"}
+                              {sizeOption === "Medium" }
+                              {sizeOption === "Large" }
                             </span>
                           </label>
                         ))}

@@ -9,23 +9,24 @@ const calculatePrice = (item) => {
     return item.price;
   }
 
-  const ingredientCost = (item.ingredients || []).reduce(
-    (sum, ingredient) =>
-      ingredient.quantity > 0
-        ? sum + ingredient.price * ingredient.quantity
-        : sum,
-    0
-  );
+  // const ingredientCost = (item.ingredients || []).reduce(
+  //   (sum, ingredient) =>
+  //     ingredient.quantity > 0
+  //       ? sum + ingredient.price * ingredient.quantity
+  //       : sum,
+  //   0
+  // );
 
-  const toppingCost = (item.toppings || []).reduce(
-    (sum, topping) =>
-      topping.quantity > 0 ? sum + topping.price * topping.quantity : sum,
-    0
-  );
-  const total =
-    Number(item.price) + Number(ingredientCost) + Number(toppingCost);
+  // const toppingCost = (item.toppings || []).reduce(
+  //   (sum, topping) =>
+  //     topping.quantity > 0 ? sum + topping.price * topping.quantity : sum,
+  //   0
+  // );
+  // const total =
+  //   Number(item.price) + Number(ingredientCost) + Number(toppingCost);
 
-  return total.toFixed(1);
+  // return total.toFixed(1);
+    return Number(item.prices);
 };
 
 const getItemLink = (item) => {

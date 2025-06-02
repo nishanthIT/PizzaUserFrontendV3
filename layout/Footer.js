@@ -461,7 +461,7 @@ const Footer3 = () => {
                     </a>
                   </li>
                   <li>
-                    <a href="callto:+(1)0987654321">+(1) 098 765 4321</a>
+                    <a href="callto:+(1)0987654321">020 3340 9635</a>
                   </li>
                 </ul>
               </div>
@@ -479,10 +479,10 @@ const Footer3 = () => {
                 </div>
                 <ul>
                   <li>
-                    Monday – Friday: <span>8am – 9pm</span>
+                    Sunday – Thursday: <span>17.00pm-10.30pm</span>
                   </li>
                   <li>
-                    Saturday: <span>8am – 12am</span>
+                    Friday - Saturday: <span>17.00pm-11.00pm</span>
                   </li>
                 </ul>
               </div>

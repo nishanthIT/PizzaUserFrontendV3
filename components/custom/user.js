@@ -15,7 +15,7 @@ const UserPage = ({ user }) => {
     const fetchOrders = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/getOrders",
+          "https://backend.addiscombepizza.co.uk/api/getOrders",
           {
             withCredentials: true,
           }

@@ -36,6 +36,7 @@ const getCategoryIcon = (categoryName) => {
 const getBasePrice = (sizes) => {
   try {
     const sizeObj = typeof sizes === "string" ? JSON.parse(sizes) : sizes || {};
+    console.log("Parsed sizessssssssssssssss:", sizeObj);
     return sizeObj.SMALL || sizeObj.small || "10";
   } catch (e) {
     return "10";
@@ -155,7 +156,8 @@ const MenuPizzaPage = () => {
       return {
         id: pizza?.id || Math.random().toString(),
         title: pizza?.name || "Unnamed Pizza",
-        price: getBasePrice(sizes),
+        prices: getBasePrice(sizes),
+        price: pizza?.price ,
         decs: pizza?.description || "Delicious pizza with fresh ingredients",
         img: pizza?.imageUrl
           ? `/uploads/${pizza.imageUrl}`

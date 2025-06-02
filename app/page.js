@@ -53,7 +53,7 @@ const page = () => {
     const fetchCombos = async () => {
       try {
         const response = await fetch(
-          "http://localhost:3000/api/getAllcomboList"
+          "https://backend.addiscombepizza.co.uk/api/getAllcomboList"
         );
         const data = await response.json();
         // Take only first 3 combos
@@ -68,7 +68,7 @@ const page = () => {
     const fetchPizzas = async () => {
       try {
         const response = await fetch(
-          "http://localhost:3000/api/getAllPizzaList"
+          "https://backend.addiscombepizza.co.uk/api/getAllPizzaList"
         );
         const data = await response.json();
         // Take only first 8 pizzas
@@ -777,13 +777,16 @@ const page = () => {
                   alt="Special Food"
                 />
                 <div className="section-title mt-45 mb-25">
-                  <h2>chicken drumsticks</h2>
+                  <h2>Buy Any 2</h2>
                 </div>
                 <p className="ms-0">
-                  Nestled in the heart of the city, our restaurant is a culinary
-                  haven where flavors come alive memories are made.
+               Medium for £10.95
+Large for £15.95
+Super size £19.95
+Delivery within 3 miles,
+Delivery charges apply use coupon code: ADDISCOMBE15
                 </p>
-                <a href="product-details" className="theme-btn mt-15">
+                <a href="menu-pizza" className="theme-btn mt-15">
                   order now <i className="far fa-arrow-alt-right" />
                 </a>
               </div>
@@ -806,8 +809,9 @@ const page = () => {
                   }}
                 >
                   <span>
-                    only <br />
-                    <span className="price">$59</span>
+                    Buy Any 2 
+ <br />
+                    <span className="price">£15.95</span>
                   </span>
                 </div>
                 <span className="marquee-wrap style-two text-white">
