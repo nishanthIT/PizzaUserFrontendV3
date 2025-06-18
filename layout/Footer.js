@@ -439,7 +439,9 @@ const Footer3 = () => {
                   <h5>Location</h5>
                 </div>
                 <p>
-                  1403 Washington Ave, New Orlea ns, LA 70130, United States
+                  371 GREEN WRYTHE LANE 
+CARSHALTON 
+SM5 1JQ
                 </p>
               </div>
             </div>
@@ -455,13 +457,14 @@ const Footer3 = () => {
                   <h5>contact us</h5>
                 </div>
                 <ul>
-                  <li>
+                  {/* <li>
                     <a href="mailto:wellfood@gmail.com">
                       <u>nishanth@gmail.com</u>
                     </a>
-                  </li>
+                  </li> */}
                   <li>
-                    <a href="callto:+(1)0987654321">020 3340 9635</a>
+                    <div><a href="callto:+(44)02086483483">020 8648 3483</a></div>
+<div><a href="callto:+(44)07498582461">074 9858 2461</a></div>
                   </li>
                 </ul>
               </div>
@@ -479,11 +482,12 @@ const Footer3 = () => {
                 </div>
                 <ul>
                   <li>
-                    Sunday – Thursday: <span>17.00pm-10.30pm</span>
+                    7 days a week 
+<span>12:00 - 11:00pm</span>
                   </li>
-                  <li>
+                  {/* <li>
                     Friday - Saturday: <span>17.00pm-11.00pm</span>
-                  </li>
+                  </li> */}
                 </ul>
               </div>
             </div>
@@ -524,7 +528,7 @@ const Footer3 = () => {
               <Link href="/">Slice </Link>
             </li>
             <li>
-            <Link href="/">Smil</Link>
+            <Link href="/">Smile</Link>
             </li>
             <li>
               <Link href="/">Repeat!</Link>

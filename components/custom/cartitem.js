@@ -16,7 +16,7 @@ const CartItem = ({
     <div className="cart-item">
       {/* <img src={image} alt={title} className="cart-item-image" /> */}
       <img
-        src={`https://backend.addiscombepizza.co.uk/api/images/${image}`}
+        src={`https://backend.circlepizzapizza.co.uk/api/images/${image}`}
         alt={title}
         className="cart-item-image"
       />

@@ -323,7 +323,7 @@ const MobileMenu = () => {
               </div>
               <div className="header-number">
                 <i className="far fa-phone" />
-                Call : <a href="callto:020 3340 9635">020 3340 9635</a>
+                Call : <a href="callto:020 8648 3483">020 8648 3483</a>
               </div>
               {/* Nav Search */}
               {/* <SearchBtn /> */}
@@ -596,7 +596,7 @@ const Header = () => {
           <div className="logo-outer">
             <div className="logo">
               <Link href="/">
-                <img src="assets/images/logos/logo.png" alt="Logo" title="Logo"    style={{ width: '100px', height: 'auto' }} />
+                <img src="assets/images/logos/logo-a.png" alt="Logo" title="Logo"    style={{ width: '100px', height: 'auto' }} />
               </Link>
             </div>
           </div>
@@ -642,7 +642,7 @@ const Header = () => {
           </div>
           <div className="header-number">
             <i className="far fa-phone" />
-            C a l l : <a href="callto:020 3340 9635">020 3340 9635</a>
+            C a l l : <a href="callto:020 8648 3483">020 8648 3483</a>
           </div>
           {/* Nav Search */}
           {/* <SearchBtn /> */}

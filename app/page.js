@@ -53,7 +53,7 @@ const page = () => {
     const fetchCombos = async () => {
       try {
         const response = await fetch(
-          "https://backend.addiscombepizza.co.uk/api/getAllcomboList"
+          "https://backend.circlepizzapizza.co.uk/api/getAllcomboList"
         );
         const data = await response.json();
         // Take only first 3 combos
@@ -68,7 +68,7 @@ const page = () => {
     const fetchPizzas = async () => {
       try {
         const response = await fetch(
-          "https://backend.addiscombepizza.co.uk/api/getAllPizzaList"
+          "https://backend.circlepizzapizza.co.uk/api/getAllPizzaList"
         );
         const data = await response.json();
         // Take only first 8 pizzas
@@ -115,7 +115,8 @@ const page = () => {
             data-aos-offset={50}
           >
             <span className="sub-title">Love at first bite.</span>
-            <h1>ADDISCOMBE</h1>
+            <h1>CIRCLE  PIZZA  PIZZA</h1>
+            
 
             <img
               className="custom-hero-pizza"
@@ -780,11 +781,7 @@ const page = () => {
                   <h2>Buy Any 2</h2>
                 </div>
                 <p className="ms-0">
-               Medium for £10.95
-Large for £15.95
-Super size £19.95
-Delivery within 3 miles,
-Delivery charges apply use coupon code: ADDISCOMBE15
+             Comming soon...
                 </p>
                 <a href="menu-pizza" className="theme-btn mt-15">
                   order now <i className="far fa-arrow-alt-right" />
