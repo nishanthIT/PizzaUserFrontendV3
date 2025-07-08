@@ -1,3 +1,3 @@
-export const API_URL = "https://backend.circlepizzapizza.co.uk/api";
+export const API_URL = "http://localhost:3003/api";
 
 // {`${API_URL}/images/pizza-${pizza.id}.png`}

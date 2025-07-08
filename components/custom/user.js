@@ -15,7 +15,7 @@ const UserPage = ({ user }) => {
     const fetchOrders = async () => {
       try {
         const response = await axios.get(
-          "https://backend.circlepizzapizza.co.uk/api/getOrders",
+          "http://localhost:3003/api/getOrders",
           {
             withCredentials: true,
           }

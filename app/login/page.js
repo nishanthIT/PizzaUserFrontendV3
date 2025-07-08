@@ -37,7 +37,7 @@
 //   useEffect(() => {
 //     const checkLogin = async () => {
 //       try {
-//         const res = await fetch('https://backend.circlepizzapizza.co.uk/api/check-auth', {
+//         const res = await fetch('http://localhost:3003/api/check-auth', {
 //           credentials: 'include',
 //         });
 //         if (!res.ok) return;
@@ -52,16 +52,16 @@
 //       const checkAuthAndSyncCart = async () => {
 //       try {
 //         console.log("Checking auth and syncing cart...");
-//         const res = await axios.get("https://backend.circlepizzapizza.co.uk/api/check-auth", { withCredentials: true });
+//         const res = await axios.get("http://localhost:3003/api/check-auth", { withCredentials: true });
         
 //          if (res.data?.user) {
 //            const clearRes = await axios.post(
-//         "https://backend.circlepizzapizza.co.uk/api/cart/clear",
+//         "http://localhost:3003/api/cart/clear",
 //         {},
 //         { withCredentials: true }
 //       );
 //           const syncRes = await axios.post(
-//             "https://backend.circlepizzapizza.co.uk/api/cart/sync",
+//             "http://localhost:3003/api/cart/sync",
 //             { cartItems },
 //             { withCredentials: true }
 //           );
@@ -96,7 +96,7 @@
 //       const cleaned = mobile.replace(/\D/g, '');
 //       const finalNumber = cleaned.startsWith('') ? cleaned : `${cleaned}`;
       
-//       const response = await fetch('https://backend.circlepizzapizza.co.uk/api/otp', {
+//       const response = await fetch('http://localhost:3003/api/otp', {
 //         method: 'POST',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -121,7 +121,7 @@
 // //     setError('');
 
 // //     try {
-// //       const response = await fetch('https://backend.circlepizzapizza.co.uk/api/verify-otp', {
+// //       const response = await fetch('http://localhost:3003/api/verify-otp', {
 // //         method: 'POST',
 // //         headers: {
 // //           'Content-Type': 'application/json',
@@ -147,7 +147,7 @@
 //   setError('');
 
 //   try {
-//     const response = await fetch('https://backend.circlepizzapizza.co.uk/api/verify-otp', {
+//     const response = await fetch('http://localhost:3003/api/verify-otp', {
 //       method: 'POST',
 //       headers: { 'Content-Type': 'application/json' },
 //       body: JSON.stringify({
@@ -172,18 +172,18 @@
 //     const checkAuthAndSyncCart = async () => {
 //       try {
 //         console.log("Checking auth and syncing cart...");
-//         const res = await axios.get("https://backend.circlepizzapizza.co.uk/api/check-auth", { withCredentials: true });
+//         const res = await axios.get("http://localhost:3003/api/check-auth", { withCredentials: true });
         
 //          if (res.data?.user) {
 
 //           const clearRes = await axios.post(
-//                  "https://backend.circlepizzapizza.co.uk/api/cart/clear",
+//                  "http://localhost:3003/api/cart/clear",
 //                  {},
 //                  { withCredentials: true }
 //                );
 
 //           const syncRes = await axios.post(
-//             "https://backend.circlepizzapizza.co.uk/api/cart/sync",
+//             "http://localhost:3003/api/cart/sync",
 //             { cartItems },
 //             { withCredentials: true }
 //           );
@@ -355,7 +355,7 @@ const LoginPage = () => {
       
       // Clear the cart on the server side as well
       axios.post(
-        'https://backend.circlepizzapizza.co.uk/api/cart/clear',
+        'http://localhost:3003/api/cart/clear',
         {},
         { withCredentials: true }
       ).catch(err => console.error("Error clearing cart:", err));
@@ -369,7 +369,7 @@ const LoginPage = () => {
     const checkLogin = async () => {
      // setisLoading(true);
       try {
-        const res = await fetch('https://backend.circlepizzapizza.co.uk/api/check-auth', {
+        const res = await fetch('http://localhost:3003/api/check-auth', {
           credentials: 'include',
         });
         if (!res.ok) return;
@@ -384,16 +384,16 @@ const LoginPage = () => {
           const checkAuthAndSyncCart = async () => {
             try {
               console.log("Checking auth and syncing cart...");
-              const res = await axios.get("https://backend.circlepizzapizza.co.uk/api/check-auth", { withCredentials: true });
+              const res = await axios.get("http://localhost:3003/api/check-auth", { withCredentials: true });
               
               if (res.data?.user) {
                 const clearRes = await axios.post(
-                  "https://backend.circlepizzapizza.co.uk/api/cart/clear",
+                  "http://localhost:3003/api/cart/clear",
                   {},
                   { withCredentials: true }
                 );
                 const syncRes = await axios.post(
-                  "https://backend.circlepizzapizza.co.uk/api/cart/sync",
+                  "http://localhost:3003/api/cart/sync",
                   { cartItems },
                   { withCredentials: true }
                 );
@@ -426,7 +426,7 @@ const LoginPage = () => {
       const cleaned = mobile.replace(/\D/g, '');
       const finalNumber = cleaned.startsWith('') ? cleaned : `${cleaned}`;
       
-      const response = await fetch('https://backend.circlepizzapizza.co.uk/api/otp', {
+      const response = await fetch('http://localhost:3003/api/otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -451,7 +451,7 @@ const LoginPage = () => {
     setError('');
 
     try {
-      const response = await fetch('https://backend.circlepizzapizza.co.uk/api/verify-otp', {
+      const response = await fetch('http://localhost:3003/api/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -475,17 +475,17 @@ const LoginPage = () => {
         const checkAuthAndSyncCart = async () => {
           try {
             console.log("Checking auth and syncing cart...");
-            const res = await axios.get("https://backend.circlepizzapizza.co.uk/api/check-auth", { withCredentials: true });
+            const res = await axios.get("http://localhost:3003/api/check-auth", { withCredentials: true });
             
             if (res.data?.user) {
               const clearRes = await axios.post(
-                "https://backend.circlepizzapizza.co.uk/api/cart/clear",
+                "http://localhost:3003/api/cart/clear",
                 {},
                 { withCredentials: true }
               );
 
               const syncRes = await axios.post(
-                "https://backend.circlepizzapizza.co.uk/api/cart/sync",
+                "http://localhost:3003/api/cart/sync",
                 { cartItems },
                 { withCredentials: true }
               );

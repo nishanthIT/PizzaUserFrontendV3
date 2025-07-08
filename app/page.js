@@ -53,7 +53,7 @@ const page = () => {
     const fetchCombos = async () => {
       try {
         const response = await fetch(
-          "https://backend.circlepizzapizza.co.uk/api/getAllcomboList"
+          "http://localhost:3003/api/getAllcomboList"
         );
         const data = await response.json();
         // Take only first 3 combos
@@ -68,7 +68,7 @@ const page = () => {
     const fetchPizzas = async () => {
       try {
         const response = await fetch(
-          "https://backend.circlepizzapizza.co.uk/api/getAllPizzaList"
+          "http://localhost:3003/api/getAllPizzaList"
         );
         const data = await response.json();
         // Take only first 8 pizzas
@@ -115,7 +115,7 @@ const page = () => {
             data-aos-offset={50}
           >
             <span className="sub-title">Love at first bite.</span>
-            <h1>CIRCLE  PIZZA  PIZZA</h1>
+            <h1>addiscombepizza</h1>
             
 
             <img

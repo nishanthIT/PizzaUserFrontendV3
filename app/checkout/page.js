@@ -61,7 +61,7 @@ const Page = () => {
       const cleaned = mobileNumber.replace(/\D/g, "");
       const finalNumber = cleaned.startsWith("") ? cleaned : `${cleaned}`;
 
-      const response = await fetch("https://backend.circlepizzapizza.co.uk/api/otp", {
+      const response = await fetch("http://localhost:3003/api/otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -98,7 +98,7 @@ const Page = () => {
     setError("");
 
     try {
-      const response = await fetch("https://backend.circlepizzapizza.co.uk/api/verify-otp", {
+      const response = await fetch("http://localhost:3003/api/verify-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,7 +118,7 @@ const Page = () => {
         try {
           console.log("Checking auth and syncing cart...");
 
-          const res = await axios.get("https://backend.circlepizzapizza.co.uk/api/check-auth", {
+          const res = await axios.get("http://localhost:3003/api/check-auth", {
             withCredentials: true,
           });
 
@@ -127,7 +127,7 @@ const Page = () => {
 
             // Clear cart first
             const clearRes = await axios.post(
-              "https://backend.circlepizzapizza.co.uk/api/cart/clear",
+              "http://localhost:3003/api/cart/clear",
               {},
               { withCredentials: true }
             );
@@ -135,7 +135,7 @@ const Page = () => {
 
             // Sync cart
             const syncRes = await axios.post(
-              "https://backend.circlepizzapizza.co.uk/api/cart/sync",
+              "http://localhost:3003/api/cart/sync",
               { cartItems },
               { withCredentials: true }
             );
@@ -205,7 +205,7 @@ const Page = () => {
       );
 
       const res = await fetch(
-        "https://backend.circlepizzapizza.co.uk/api/create-checkout-session",
+        "http://localhost:3003/api/create-checkout-session",
         {
           method: "POST",
           credentials: "include",
