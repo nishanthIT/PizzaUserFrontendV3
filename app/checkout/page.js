@@ -35,7 +35,7 @@ const Page = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Sample zipcodes for delivery
-  const availableZipcodes = ["90001", "90002", "90003"];
+  const availableZipcodes = ["Within 1 km", "Within 2 km", "Within 3 km"];
 
   const renderCount = useRef(0);
   useEffect(() => {
@@ -460,7 +460,7 @@ const Page = () => {
                         onChange={(e) => setSelectedZipcode(e.target.value)}
                         required
                       >
-                        <option value="">Select your zipcode</option>
+                        <option value="">Select Distance from CR0 7AE Zipcode</option>
                         {availableZipcodes.map((zipcode) => (
                           <option key={zipcode} value={zipcode}>
                             {zipcode}

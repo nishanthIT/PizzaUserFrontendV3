@@ -439,9 +439,7 @@ const Footer3 = () => {
                   <h5>Location</h5>
                 </div>
                 <p>
-                  371 GREEN WRYTHE LANE 
-CARSHALTON 
-SM5 1JQ
+                 274 Lower Addiscombe Road | CR0 7AE
                 </p>
               </div>
             </div>
@@ -457,14 +455,14 @@ SM5 1JQ
                   <h5>contact us</h5>
                 </div>
                 <ul>
-                  {/* <li>
-                    <a href="mailto:wellfood@gmail.com">
-                      <u>nishanth@gmail.com</u>
-                    </a>
-                  </li> */}
                   <li>
-                    <div><a href="callto:+(44)02086483483">020 8648 3483</a></div>
-<div><a href="callto:+(44)07498582461">074 9858 2461</a></div>
+                    <a href="mailto:wellfood@gmail.com">
+                      <u>regi174@gmail.co.uk</u>
+                    </a>
+                  </li>
+                  <li>
+                    <div><a href="callto:+(44)02086483483">020 3340 9635</a></div>
+{/* <div><a href="callto:+(44)07498582461">074 9858 2461</a></div> */}
                   </li>
                 </ul>
               </div>
@@ -482,12 +480,12 @@ SM5 1JQ
                 </div>
                 <ul>
                   <li>
-                    7 days a week 
-<span>12:00 - 11:00pm</span>
+                    Sunday - Thursday:
+<span>17.00pm-10.30pm</span>
                   </li>
-                  {/* <li>
+                  <li>
                     Friday - Saturday: <span>17.00pm-11.00pm</span>
-                  </li> */}
+                  </li>
                 </ul>
               </div>
             </div>
