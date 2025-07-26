@@ -111,3 +111,16 @@
   background: #ccc;
   cursor: not-allowed;
 }
+
+
+/* Default (desktop/tablet) — no centering */
+.responsive-base-options {
+  justify-content: flex-start;
+}
+
+/* Mobile: center the base options */
+@media (max-width: 768px) {
+  .responsive-base-options {
+    justify-content: center;
+  }
+}

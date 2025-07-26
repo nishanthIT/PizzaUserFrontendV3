@@ -35,6 +35,33 @@
 
 
 
+// import { configureStore } from "@reduxjs/toolkit";
+// import { persistStore, persistReducer } from "redux-persist";
+// import storage from "redux-persist/lib/storage";
+
+// import cartReducer from "./cart/cartSlice";
+// import authReducer from "./auth/authslice";
+
+// const persistConfig = {
+//   key: "root",
+//   storage,
+// };
+
+// const persistedCart = persistReducer(persistConfig, cartReducer);
+// const persistedAuth = persistReducer({ key: "auth", storage }, authReducer);
+
+// export const store = configureStore({
+//   reducer: {
+//     cart: persistedCart,
+//     auth: persistedAuth,
+//   },
+// });
+
+// export const persistor = persistStore(store);
+
+
+
+
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
@@ -55,6 +82,12 @@ export const store = configureStore({
     cart: persistedCart,
     auth: persistedAuth,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+      },
+    }),
 });
 
 export const persistor = persistStore(store);
