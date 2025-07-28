@@ -1615,28 +1615,57 @@ const Page = () => {
     }
   };
 
-  // Generate pickup time options (current time + 30min intervals for the next 24 hours)
+  // Generate pickup time options based on store operating hours
   const generatePickupTimeOptions = () => {
     const options = [];
     const now = new Date();
-    const startTime = new Date(now);
-
+    const today = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    
+    // Define store hours
+    let storeOpenHour, storeOpenMinute, storeCloseHour, storeCloseMinute;
+    
+    if (today >= 0 && today <= 4) { // Sunday - Thursday
+      storeOpenHour = 17;
+      storeOpenMinute = 0;
+      storeCloseHour = 22;
+      storeCloseMinute = 30;
+    } else { // Friday - Saturday
+      storeOpenHour = 17;
+      storeOpenMinute = 0;
+      storeCloseHour = 23;
+      storeCloseMinute = 0;
+    }
+    
+    // Create store opening and closing times for today
+    const storeOpen = new Date(now);
+    storeOpen.setHours(storeOpenHour, storeOpenMinute, 0, 0);
+    
+    const storeClose = new Date(now);
+    storeClose.setHours(storeCloseHour, storeCloseMinute, 0, 0);
+    
+    // Start time is either now (rounded up to next 30min) or store opening, whichever is later
+    let startTime = new Date(now);
     const minutes = startTime.getMinutes();
-    startTime.setMinutes(minutes + (30 - (minutes % 30)));
-
-    for (let i = 0; i < 48; i++) {
-      const timeOption = new Date(startTime);
-      timeOption.setMinutes(startTime.getMinutes() + i * 30);
-
-      const formattedTime = timeOption.toLocaleTimeString("en-US", {
+    startTime.setMinutes(minutes + (30 - (minutes % 30)), 0, 0);
+    
+    if (startTime < storeOpen) {
+      startTime = new Date(storeOpen);
+    }
+    
+    // Generate 30-minute intervals from start time until store closes
+    let currentTime = new Date(startTime);
+    
+    while (currentTime < storeClose) {
+      const formattedTime = currentTime.toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
       });
-
+      
       options.push(formattedTime);
+      currentTime.setMinutes(currentTime.getMinutes() + 30);
     }
-
+    
     return options;
   };
 
@@ -2007,7 +2036,7 @@ const Page = () => {
                       ))}
                     </select>
                     <small className="text-muted mt-2 d-block">
-                      Our store is open from 10:00 AM to 10:00 PM
+                      Sunday - Thursday: 5:00 PM - 10:30 PM | Friday - Saturday: 5:00 PM - 11:00 PM
                     </small>
                   </div>
                 )}
