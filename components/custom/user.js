@@ -350,10 +350,10 @@ const UserPage = ({ user }) => {
                                               </div>
                                               <div className="col-md-4 text-md-right">
                                                 <p className="mb-1">
-                                                  <small className="text-muted">£{parseFloat(item.price).toFixed(2)} each</small>
+                                                  <small className="text-muted">£{parseFloat(item.price).toFixed(2)} </small>
                                                 </p>
                                                 <h5 className="text-success mb-0">
-                                                  £{(parseFloat(item.price) * item.quantity).toFixed(2)}
+                                                  X {parseFloat(item.quantity).toFixed(0)}
                                                 </h5>
                                               </div>
                                             </div>

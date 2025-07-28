@@ -973,9 +973,19 @@ const page = () => {
         break;
     }
 
-    if (pizzaBase === "Stuffed Crust +2£") {
-      basePrice += 2;; // Add £2 for stuffed crust
-      // Add £2 for stuffed crust
+    if (pizzaBase.includes("Stuffed Crust")) {
+      // Dynamic stuffed crust pricing based on size
+      switch (size) {
+        case "Large":
+          basePrice += 3; // £3 for large
+          break;
+        case "Super Size":
+          basePrice += 4; // £4 for super size
+          break;
+        default:
+          basePrice += 2; // £2 for medium
+          break;
+      }
     }
     return Number(basePrice * quantity);
   };
@@ -1099,7 +1109,16 @@ const page = () => {
     //justifyContent: "center", // ✅ Center on all screens (esp. mobile)
   }}
 >
-  {["Regular Crust", "ThinCrust", "Stuffed Crust +2£", ].map((baseOption) => (
+  {["Regular Crust", "ThinCrust", (() => {
+    switch (size) {
+      case "Large":
+        return "Stuffed Crust +£3";
+      case "Super Size":
+        return "Stuffed Crust +£4";
+      default:
+        return "Stuffed Crust +£2";
+    }
+  })()].map((baseOption) => (
     <label
       key={baseOption}
       style={{
@@ -1108,8 +1127,8 @@ const page = () => {
         padding: "10px 15px",
         borderRadius: "8px",
         border: "2px solid",
-        borderColor: pizzaBase === baseOption ? "#ff6b35" : "#ddd",
-        backgroundColor: pizzaBase === baseOption ? "#fff4f0" : "#fff",
+        borderColor: baseOption.includes("Stuffed Crust") ? (pizzaBase.includes("Stuffed Crust") ? "#ff6b35" : "#ddd") : (pizzaBase === baseOption ? "#ff6b35" : "#ddd"),
+        backgroundColor: baseOption.includes("Stuffed Crust") ? (pizzaBase.includes("Stuffed Crust") ? "#fff4f0" : "#fff") : (pizzaBase === baseOption ? "#fff4f0" : "#fff"),
         cursor: "pointer",
         transition: "all 0.3s ease",
       }}
@@ -1119,7 +1138,7 @@ const page = () => {
         type="radio"
         name="pizzaBase"
         value={baseOption}
-        checked={pizzaBase === baseOption}
+        checked={baseOption.includes("Stuffed Crust") ? pizzaBase.includes("Stuffed Crust") : pizzaBase === baseOption}
         onChange={() => setPizzaBase(baseOption)}
         style={{
           display: "none", // ✅ Hide default radio button
@@ -1127,8 +1146,8 @@ const page = () => {
       />
       <span
         style={{
-          fontWeight: pizzaBase === baseOption ? "600" : "400",
-          color: pizzaBase === baseOption ? "#ff6b35" : "#333", // Optional highlight
+          fontWeight: baseOption.includes("Stuffed Crust") ? (pizzaBase.includes("Stuffed Crust") ? "600" : "400") : (pizzaBase === baseOption ? "600" : "400"),
+          color: baseOption.includes("Stuffed Crust") ? (pizzaBase.includes("Stuffed Crust") ? "#ff6b35" : "#333") : (pizzaBase === baseOption ? "#ff6b35" : "#333"), // Optional highlight
         }}
       >
         {baseOption}

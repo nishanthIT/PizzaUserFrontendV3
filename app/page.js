@@ -115,6 +115,64 @@ const page = () => {
             data-aos-offset={50}
           >
             <span className="sub-title">Love at first bite.</span>
+            <div className="opening-hours-status" style={{ 
+              color: 'rgba(255, 255, 255, 0.8)', 
+              fontSize: '14px', 
+              marginTop: '10px',
+              marginBottom: '20px'
+            }}>
+              <div>
+                <span id="shop-status" style={{ 
+                  fontWeight: 'bold',
+                  color: (() => {
+                    const now = new Date();
+                    const day = now.getDay();
+                    const hour = now.getHours();
+                    const minute = now.getMinutes();
+                    
+                    if (day === 0 || (day >= 1 && day <= 4)) {
+                      // Sunday-Thursday: 17:00-22:30
+                      if ((hour === 17 && minute >= 0) || (hour > 17 && hour < 22) || (hour === 22 && minute <= 30)) {
+                        return '#28a745';
+                      }
+                    } else if (day === 5 || day === 6) {
+                      // Friday-Saturday: 17:00-23:00
+                      if ((hour === 17 && minute >= 0) || (hour > 17 && hour < 23)) {
+                        return '#28a745';
+                      }
+                    }
+                    return '#dc3545';
+                  })()
+                }}>
+                  {(() => {
+                    const now = new Date();
+                    const day = now.getDay();
+                    const hour = now.getHours();
+                    const minute = now.getMinutes();
+                    
+                    if (day === 0 || (day >= 1 && day <= 4)) {
+                      // Sunday-Thursday: 17:00-22:30
+                      if ((hour === 17 && minute >= 0) || (hour > 17 && hour < 22) || (hour === 22 && minute <= 30)) {
+                        return 'OPEN';
+                      }
+                    } else if (day === 5 || day === 6) {
+                      // Friday-Saturday: 17:00-23:00
+                      if ((hour === 17 && minute >= 0) || (hour > 17 && hour < 23)) {
+                        return 'OPEN';
+                      }
+                    }
+                    return 'CLOSED';
+                  })()}
+                </span>
+                {' '}• Today: {(() => {
+                  const day = new Date().getDay();
+                  if (day === 5 || day === 6) {
+                    return '17:00-23:00';
+                  }
+                  return '17:00-22:30';
+                })()}
+              </div>
+            </div>
             <h1>addiscombepizza</h1>
             
 
@@ -368,9 +426,7 @@ const page = () => {
                       index === 1 ? "style-four" : "style-three"
                     }`}
                     style={{
-                      backgroundImage: `url(assets/images/banner/category-banner-three${
-                        index + 1
-                      }.jpg)`,
+                      backgroundImage: `url(http://localhost:3003/api/images/combo-${combo.id}.png)`,
                     }}
                   >
                     <h3>{combo.name.toUpperCase()}</h3>
