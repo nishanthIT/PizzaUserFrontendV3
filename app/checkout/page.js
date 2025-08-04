@@ -61,7 +61,7 @@
 //       const cleaned = mobileNumber.replace(/\D/g, "");
 //       const finalNumber = cleaned.startsWith("") ? cleaned : `${cleaned}`;
 
-//       const response = await fetch("http://localhost:3003/api/otp", {
+//       const response = await fetch("https://backend.addiscombepizza.co.uk/api/otp", {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -98,7 +98,7 @@
 //     setError("");
 
 //     try {
-//       const response = await fetch("http://localhost:3003/api/verify-otp", {
+//       const response = await fetch("https://backend.addiscombepizza.co.uk/api/verify-otp", {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -118,7 +118,7 @@
 //         try {
 //           console.log("Checking auth and syncing cart...");
 
-//           const res = await axios.get("http://localhost:3003/api/check-auth", {
+//           const res = await axios.get("https://backend.addiscombepizza.co.uk/api/check-auth", {
 //             withCredentials: true,
 //           });
 
@@ -127,7 +127,7 @@
 
 //             // Clear cart first
 //             const clearRes = await axios.post(
-//               "http://localhost:3003/api/cart/clear",
+//               "https://backend.addiscombepizza.co.uk/api/cart/clear",
 //               {},
 //               { withCredentials: true }
 //             );
@@ -135,7 +135,7 @@
 
 //             // Sync cart
 //             const syncRes = await axios.post(
-//               "http://localhost:3003/api/cart/sync",
+//               "https://backend.addiscombepizza.co.uk/api/cart/sync",
 //               { cartItems },
 //               { withCredentials: true }
 //             );
@@ -205,7 +205,7 @@
 //       );
 
 //       const res = await fetch(
-//         "http://localhost:3003/api/create-checkout-session",
+//         "https://backend.addiscombepizza.co.uk/api/create-checkout-session",
 //         {
 //           method: "POST",
 //           credentials: "include",
@@ -696,7 +696,7 @@
 //       const cleaned = mobileNumber.replace(/\D/g, "");
 //       const finalNumber = cleaned.startsWith("") ? cleaned : `${cleaned}`;
 
-//       const response = await fetch("http://localhost:3003/api/otp", {
+//       const response = await fetch("https://backend.addiscombepizza.co.uk/api/otp", {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -725,7 +725,7 @@
 //     setError("");
 
 //     try {
-//       const response = await fetch("http://localhost:3003/api/verify-otp", {
+//       const response = await fetch("https://backend.addiscombepizza.co.uk/api/verify-otp", {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -757,7 +757,7 @@
 //         try {
 //           console.log("Checking auth and syncing cart...");
 
-//           const res = await axios.get("http://localhost:3003/api/check-auth", {
+//           const res = await axios.get("https://backend.addiscombepizza.co.uk/api/check-auth", {
 //             withCredentials: true,
 //           });
 
@@ -766,7 +766,7 @@
 
 //             // Clear cart first
 //             const clearRes = await axios.post(
-//               "http://localhost:3003/api/cart/clear",
+//               "https://backend.addiscombepizza.co.uk/api/cart/clear",
 //               {},
 //               { withCredentials: true }
 //             );
@@ -774,7 +774,7 @@
 
 //             // Sync cart
 //             const syncRes = await axios.post(
-//               "http://localhost:3003/api/cart/sync",
+//               "https://backend.addiscombepizza.co.uk/api/cart/sync",
 //               { cartItems },
 //               { withCredentials: true }
 //             );
@@ -855,7 +855,7 @@
 //       );
 
 //       const res = await fetch(
-//         "http://localhost:3003/api/create-checkout-session",
+//         "https://backend.addiscombepizza.co.uk/api/create-checkout-session",
 //         {
 //           method: "POST",
 //           credentials: "include",
@@ -1330,17 +1330,17 @@ const Page = () => {
     const checkAuthAndFillUserInfo = async () => {
       try {
         console.log("Checking if user is already authenticated...");
-        
-        const response = await fetch("http://localhost:3003/api/check-auth", {
+
+        const response = await fetch("https://backend.addiscombepizza.co.uk/api/check-auth", {
           credentials: "include",
         });
 
         if (response.ok) {
           const data = await response.json();
-          
+
           if (data.user) {
             console.log("User is already authenticated:", data.user);
-            
+
             // Auto-fill user information (name and address only)
             if (data.user.name) {
               setName(data.user.name);
@@ -1351,10 +1351,10 @@ const Page = () => {
 
               console.log("Address auto-filled:", data.user.address);
             }
-            
+
             // Set as authenticated but still need OTP verification for cart sync
             setIsAuthenticated(true);
-            
+
             console.log("User info auto-filled successfully");
           }
         } else {
@@ -1370,7 +1370,7 @@ const Page = () => {
   }, []); // Run once on component mount
 
   // Shipping and tax calculations
-  const deliveryFee = deliveryMethod === "delivery" ? 1.5 : 0;
+  const deliveryFee = deliveryMethod === "delivery" ? 3.95 : 0;
   const taxRate = 0.08; // 8% tax
   const taxAmount = totalPrice;
   const finalTotal = totalPrice + deliveryFee;
@@ -1384,10 +1384,10 @@ const Page = () => {
 
     for (let d = new Date(today); d <= endDate; d.setDate(d.getDate() + 1)) {
       const dateStr = d.toISOString().split('T')[0];
-      const displayDate = d.toLocaleDateString('en-US', { 
-        weekday: 'short', 
-        month: 'short', 
-        day: 'numeric' 
+      const displayDate = d.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
       });
       options.push({ value: dateStr, label: displayDate });
     }
@@ -1424,7 +1424,7 @@ const Page = () => {
       const cleaned = mobileNumber.replace(/\D/g, "");
       const finalNumber = cleaned.startsWith("") ? cleaned : `${cleaned}`;
 
-      const response = await fetch("http://localhost:3003/api/otp", {
+      const response = await fetch("https://backend.addiscombepizza.co.uk/api/otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1453,7 +1453,7 @@ const Page = () => {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3003/api/verify-otp", {
+      const response = await fetch("https://backend.addiscombepizza.co.uk/api/verify-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1484,7 +1484,7 @@ const Page = () => {
         try {
           console.log("Checking auth and syncing cart...");
 
-          const res = await axios.get("http://localhost:3003/api/check-auth", {
+          const res = await axios.get("https://backend.addiscombepizza.co.uk/api/check-auth", {
             withCredentials: true,
           });
 
@@ -1492,14 +1492,14 @@ const Page = () => {
             console.log("User authenticated:", res.data.user);
 
             const clearRes = await axios.post(
-              "http://localhost:3003/api/cart/clear",
+              "https://backend.addiscombepizza.co.uk/api/cart/clear",
               {},
               { withCredentials: true }
             );
             console.log("Cart cleared on server:", clearRes);
 
             const syncRes = await axios.post(
-              "http://localhost:3003/api/cart/sync",
+              "https://backend.addiscombepizza.co.uk/api/cart/sync",
               { cartItems },
               { withCredentials: true }
             );
@@ -1579,7 +1579,7 @@ const Page = () => {
       );
 
       const res = await fetch(
-        "http://localhost:3003/api/create-checkout-session",
+        "https://backend.addiscombepizza.co.uk/api/create-checkout-session",
         {
           method: "POST",
           credentials: "include",
@@ -1620,10 +1620,10 @@ const Page = () => {
     const options = [];
     const now = new Date();
     const today = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    
+
     // Define store hours
     let storeOpenHour, storeOpenMinute, storeCloseHour, storeCloseMinute;
-    
+
     if (today >= 0 && today <= 4) { // Sunday - Thursday
       storeOpenHour = 17;
       storeOpenMinute = 0;
@@ -1635,37 +1635,37 @@ const Page = () => {
       storeCloseHour = 23;
       storeCloseMinute = 0;
     }
-    
+
     // Create store opening and closing times for today
     const storeOpen = new Date(now);
     storeOpen.setHours(storeOpenHour, storeOpenMinute, 0, 0);
-    
+
     const storeClose = new Date(now);
     storeClose.setHours(storeCloseHour, storeCloseMinute, 0, 0);
-    
+
     // Start time is either now (rounded up to next 30min) or store opening, whichever is later
     let startTime = new Date(now);
     const minutes = startTime.getMinutes();
     startTime.setMinutes(minutes + (30 - (minutes % 30)), 0, 0);
-    
+
     if (startTime < storeOpen) {
       startTime = new Date(storeOpen);
     }
-    
+
     // Generate 30-minute intervals from start time until store closes
     let currentTime = new Date(startTime);
-    
+
     while (currentTime < storeClose) {
       const formattedTime = currentTime.toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
       });
-      
+
       options.push(formattedTime);
       currentTime.setMinutes(currentTime.getMinutes() + 30);
     }
-    
+
     return options;
   };
 
@@ -1814,9 +1814,8 @@ const Page = () => {
                   <div className="row">
                     <div className="col-md-6 mb-3 mb-md-0">
                       <div
-                        className={`timing-option ${
-                          orderTiming === "asap" ? "selected" : ""
-                        }`}
+                        className={`timing-option ${orderTiming === "asap" ? "selected" : ""
+                          }`}
                         onClick={() => setOrderTiming("asap")}
                       >
                         <div className="d-flex align-items-center">
@@ -1844,9 +1843,8 @@ const Page = () => {
                     </div>
                     <div className="col-md-6">
                       <div
-                        className={`timing-option ${
-                          orderTiming === "preorder" ? "selected" : ""
-                        }`}
+                        className={`timing-option ${orderTiming === "preorder" ? "selected" : ""
+                          }`}
                         onClick={() => setOrderTiming("preorder")}
                       >
                         <div className="d-flex align-items-center">
@@ -1930,9 +1928,8 @@ const Page = () => {
                   <div className="row">
                     <div className="col-md-6 mb-3 mb-md-0">
                       <div
-                        className={`delivery-option ${
-                          deliveryMethod === "delivery" ? "selected" : ""
-                        }`}
+                        className={`delivery-option ${deliveryMethod === "delivery" ? "selected" : ""
+                          }`}
                         onClick={() => setDeliveryMethod("delivery")}
                       >
                         <div className="d-flex align-items-center">
@@ -1952,7 +1949,7 @@ const Page = () => {
                               Home Delivery
                             </label>
                             <p className="mb-0 small text-muted">
-                              £1.50 delivery fee
+                              £3.95 delivery fee
                             </p>
                           </div>
                         </div>
@@ -1960,9 +1957,8 @@ const Page = () => {
                     </div>
                     <div className="col-md-6">
                       <div
-                        className={`delivery-option ${
-                          deliveryMethod === "pickup" ? "selected" : ""
-                        }`}
+                        className={`delivery-option ${deliveryMethod === "pickup" ? "selected" : ""
+                          }`}
                         onClick={() => setDeliveryMethod("pickup")}
                       >
                         <div className="d-flex align-items-center">

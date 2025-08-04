@@ -18,7 +18,7 @@ const UserPage = ({ user }) => {
       try {
         // Fetch orders
         const ordersResponse = await axios.get(
-          "http://localhost:3003/api/getOrders",
+          "https://backend.addiscombepizza.co.uk/api/getOrders",
           {
             withCredentials: true,
           }
@@ -26,7 +26,7 @@ const UserPage = ({ user }) => {
         
         // Fetch meals donated data
         const mealsResponse = await axios.get(
-          "http://localhost:3003/api/user/meals-donated",
+          "https://backend.addiscombepizza.co.uk/api/user/meals-donated",
           {
             withCredentials: true,
           }

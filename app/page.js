@@ -53,7 +53,7 @@ const page = () => {
     const fetchCombos = async () => {
       try {
         const response = await fetch(
-          "http://localhost:3003/api/getAllcomboList"
+          "https://backend.addiscombepizza.co.uk/api/getAllcomboList"
         );
         const data = await response.json();
         // Take only first 3 combos
@@ -68,7 +68,7 @@ const page = () => {
     const fetchPizzas = async () => {
       try {
         const response = await fetch(
-          "http://localhost:3003/api/getAllPizzaList"
+          "https://backend.addiscombepizza.co.uk/api/getAllPizzaList"
         );
         const data = await response.json();
         // Take only first 8 pizzas
@@ -426,7 +426,7 @@ const page = () => {
                       index === 1 ? "style-four" : "style-three"
                     }`}
                     style={{
-                      backgroundImage: `url(http://localhost:3003/api/images/combo-${combo.id}.png)`,
+                      backgroundImage: `url(https://backend.addiscombepizza.co.uk/api/images/combo-${combo.id}.png)`,
                     }}
                   >
                     <h3>{combo.name.toUpperCase()}</h3>

@@ -35,14 +35,14 @@ const page = () => {
 // useEffect(() => {
 //   const checkAuthAndSyncCart = async () => {
 //     try {
-//       const res = await axios.get("http://localhost:3003/api/check-auth", {
+//       const res = await axios.get("https://backend.addiscombepizza.co.uk/api/check-auth", {
 //         withCredentials: true,
 //       });
 
 //       if (res.data?.user) {
 //         const userId = res.data.user.id;
 //         const cartRes = await axios.get(
-//           `http://localhost:3003/api/cart?userId=${userId}`,
+//           `https://backend.addiscombepizza.co.uk/api/cart?userId=${userId}`,
 //           { withCredentials: true }
 //         );
 //         console.log("Cart fetched from server:", cartRes.data);
@@ -80,14 +80,14 @@ const page = () => {
 // }, [dispatch]);
   // Clear cart functionality
   const handleClearCart = async () => {
-    //  const res = await axios.get("http://localhost:3003/api/check-auth", { withCredentials: true });
+    //  const res = await axios.get("https://backend.addiscombepizza.co.uk/api/check-auth", { withCredentials: true });
     // const userId = res.data?.user?.id;
     // if (!userId) {
     //   console.error("User not authenticated. Cannot clear cart.");
     //   return;
     // }
     // try {
-    //   const res = await axios.post("http://localhost:3003/api/cart/clear", {userId}, { withCredentials: true });
+    //   const res = await axios.post("https://backend.addiscombepizza.co.uk/api/cart/clear", {userId}, { withCredentials: true });
 
     //   if (res.status === 200) {
     //     console.log("Cart cleared successfully");
@@ -130,7 +130,7 @@ const page = () => {
 
 
                   onIncrement={async () => {
-//     const res = await axios.get("http://localhost:3003/api/check-auth", { withCredentials: true });
+//     const res = await axios.get("https://backend.addiscombepizza.co.uk/api/check-auth", { withCredentials: true });
 //     const userId = res.data?.user?.id;
 
 //     const cleanedItem = {
@@ -140,7 +140,7 @@ const page = () => {
 // };
 
 //   if (userId) {
-//     await axios.post("http://localhost:3003/api/cart/increment", {
+//     await axios.post("https://backend.addiscombepizza.co.uk/api/cart/increment", {
 //       userId,
 //       item: cleanedItem,
 //     }, { withCredentials: true });

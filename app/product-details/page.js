@@ -771,7 +771,7 @@ const page = () => {
 
   // Move size state declaration before the useEffect that uses it
   const [size, setSize] = useState("Medium");
-  
+
   const [ingredients, setIngredients] = useState([]);
   const [toppings, setToppings] = useState([]);
   const [initialBasePrice, setInitialBasePrice] = useState(0);
@@ -907,12 +907,12 @@ const page = () => {
       prevIngredients.map((ingredient, idx) =>
         idx === index
           ? {
-              ...ingredient,
-              quantity:
-                operation === "add"
-                  ? Math.min(ingredient.quantity + 1, maxQuantity)
-                  : Math.max(ingredient.quantity - 1, 0),
-            }
+            ...ingredient,
+            quantity:
+              operation === "add"
+                ? Math.min(ingredient.quantity + 1, maxQuantity)
+                : Math.max(ingredient.quantity - 1, 0),
+          }
           : ingredient
       )
     );
@@ -923,12 +923,12 @@ const page = () => {
       prevToppings.map((topping, idx) =>
         idx === index
           ? {
-              ...topping,
-              quantity:
-                operation === "add"
-                  ? Math.min(topping.quantity + 1, maxQuantity)
-                  : Math.max(topping.quantity - 1, 0),
-            }
+            ...topping,
+            quantity:
+              operation === "add"
+                ? Math.min(topping.quantity + 1, maxQuantity)
+                : Math.max(topping.quantity - 1, 0),
+          }
           : topping
       )
     );
@@ -950,26 +950,26 @@ const page = () => {
 
   const getPrice = () => {
 
-      const sizes =
+    const sizes =
       typeof pizza?.sizes === "string" ? JSON.parse(pizza.sizes) : pizza?.sizes;
-      let basePrice = finalPrice
+    let basePrice = finalPrice
     switch (size) {
       case "Large":
         // return Number(
         //   finalPrice +
         //     (Number(sizes?.MEDIUM || 0) - Number(sizes?.SMALL || 0)) * quantity
         // );
-        basePrice += (Number(sizes?.MEDIUM || 0) - Number(sizes?.SMALL || 0)) ;
+        basePrice += (Number(sizes?.MEDIUM || 0) - Number(sizes?.SMALL || 0));
         break;
       case "Super Size":
         // return Number(
         //   finalPrice +
         //     (Number(sizes?.LARGE || 0) - Number(sizes?.SMALL || 0)) * quantity
         // );
-        basePrice += (Number(sizes?.LARGE || 0) - Number(sizes?.SMALL || 0)) ;
+        basePrice += (Number(sizes?.LARGE || 0) - Number(sizes?.SMALL || 0));
         break;
       default:
-        basePrice =  Number(finalPrice)
+        basePrice = Number(finalPrice)
         break;
     }
 
@@ -1099,62 +1099,62 @@ const page = () => {
                       </h5>
 
 
-                      
+
                       <div
-  className="base-options responsive-base-options"
-  style={{
-    display: "flex",
-    gap: "15px",
-    flexWrap: "wrap",
-    //justifyContent: "center", // ✅ Center on all screens (esp. mobile)
-  }}
->
-  {["Regular Crust", "ThinCrust", (() => {
-    switch (size) {
-      case "Large":
-        return "Stuffed Crust +£3";
-      case "Super Size":
-        return "Stuffed Crust +£4";
-      default:
-        return "Stuffed Crust +£2";
-    }
-  })()].map((baseOption) => (
-    <label
-      key={baseOption}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        padding: "10px 15px",
-        borderRadius: "8px",
-        border: "2px solid",
-        borderColor: baseOption.includes("Stuffed Crust") ? (pizzaBase.includes("Stuffed Crust") ? "#ff6b35" : "#ddd") : (pizzaBase === baseOption ? "#ff6b35" : "#ddd"),
-        backgroundColor: baseOption.includes("Stuffed Crust") ? (pizzaBase.includes("Stuffed Crust") ? "#fff4f0" : "#fff") : (pizzaBase === baseOption ? "#fff4f0" : "#fff"),
-        cursor: "pointer",
-        transition: "all 0.3s ease",
-      }}
-    >
-      
-      <input
-        type="radio"
-        name="pizzaBase"
-        value={baseOption}
-        checked={baseOption.includes("Stuffed Crust") ? pizzaBase.includes("Stuffed Crust") : pizzaBase === baseOption}
-        onChange={() => setPizzaBase(baseOption)}
-        style={{
-          display: "none", // ✅ Hide default radio button
-        }}
-      />
-      <span
-        style={{
-          fontWeight: baseOption.includes("Stuffed Crust") ? (pizzaBase.includes("Stuffed Crust") ? "600" : "400") : (pizzaBase === baseOption ? "600" : "400"),
-          color: baseOption.includes("Stuffed Crust") ? (pizzaBase.includes("Stuffed Crust") ? "#ff6b35" : "#333") : (pizzaBase === baseOption ? "#ff6b35" : "#333"), // Optional highlight
-        }}
-      >
-        {baseOption}
-      </span>
-    </label>
-  ))}
-</div>
+                        className="base-options responsive-base-options"
+                        style={{
+                          display: "flex",
+                          gap: "15px",
+                          flexWrap: "wrap",
+                          //justifyContent: "center", // ✅ Center on all screens (esp. mobile)
+                        }}
+                      >
+                        {["Regular Crust", "ThinCrust", (() => {
+                          switch (size) {
+                            case "Large":
+                              return "Stuffed Crust +£3";
+                            case "Super Size":
+                              return "Stuffed Crust +£4";
+                            default:
+                              return "Stuffed Crust +£2";
+                          }
+                        })()].map((baseOption) => (
+                          <label
+                            key={baseOption}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              padding: "10px 15px",
+                              borderRadius: "8px",
+                              border: "2px solid",
+                              borderColor: baseOption.includes("Stuffed Crust") ? (pizzaBase.includes("Stuffed Crust") ? "#ff6b35" : "#ddd") : (pizzaBase === baseOption ? "#ff6b35" : "#ddd"),
+                              backgroundColor: baseOption.includes("Stuffed Crust") ? (pizzaBase.includes("Stuffed Crust") ? "#fff4f0" : "#fff") : (pizzaBase === baseOption ? "#fff4f0" : "#fff"),
+                              cursor: "pointer",
+                              transition: "all 0.3s ease",
+                            }}
+                          >
+
+                            <input
+                              type="radio"
+                              name="pizzaBase"
+                              value={baseOption}
+                              checked={baseOption.includes("Stuffed Crust") ? pizzaBase.includes("Stuffed Crust") : pizzaBase === baseOption}
+                              onChange={() => setPizzaBase(baseOption)}
+                              style={{
+                                display: "none", // ✅ Hide default radio button
+                              }}
+                            />
+                            <span
+                              style={{
+                                fontWeight: baseOption.includes("Stuffed Crust") ? (pizzaBase.includes("Stuffed Crust") ? "600" : "400") : (pizzaBase === baseOption ? "600" : "400"),
+                                color: baseOption.includes("Stuffed Crust") ? (pizzaBase.includes("Stuffed Crust") ? "#ff6b35" : "#333") : (pizzaBase === baseOption ? "#ff6b35" : "#333"), // Optional highlight
+                              }}
+                            >
+                              {baseOption}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
 
 
                     </div>
@@ -1353,7 +1353,7 @@ const page = () => {
                       {toppings.map((topping, index) => {
                         const sizeMultiplier = getSizeMultiplier();
                         const adjustedPrice = topping.price * sizeMultiplier;
-                        
+
                         return (
                           <li
                             key={index}
@@ -1371,11 +1371,11 @@ const page = () => {
                           >
                             <span style={{ fontWeight: "500" }}>
                               {topping.name} - £{adjustedPrice.toFixed(1)}
-                              {sizeMultiplier > 1 && (
+                              {/* {sizeMultiplier > 1 && (
                                 <span style={{ fontSize: "0.9em", color: "#666" }}>
                                   {" "}(+{Math.round((sizeMultiplier - 1) * 100)}% for {size})
                                 </span>
-                              )}
+                              )} */}
                             </span>
                             <div
                               className="topping-controls"
