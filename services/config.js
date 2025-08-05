@@ -1,3 +1,3 @@
-export const API_URL = "https://backend.addiscombepizza.co.uk/api";
+export const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 // {`${API_URL}/images/pizza-${pizza.id}.png`}

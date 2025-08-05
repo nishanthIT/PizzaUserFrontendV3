@@ -4,6 +4,7 @@ import WellFoodLayout from "@/layout/WellFoodLayout";
 import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_URL } from "@/services/config";
 
 const UserPage = ({ user }) => {
   console.log("User data:", user);
@@ -18,15 +19,14 @@ const UserPage = ({ user }) => {
       try {
         // Fetch orders
         const ordersResponse = await axios.get(
-          "https://backend.addiscombepizza.co.uk/api/getOrders",
+          `${API_URL}/getOrders`,
           {
             withCredentials: true,
           }
         );
-        
         // Fetch meals donated data
         const mealsResponse = await axios.get(
-          "https://backend.addiscombepizza.co.uk/api/user/meals-donated",
+          `${API_URL}/user/meals-donated`,
           {
             withCredentials: true,
           }

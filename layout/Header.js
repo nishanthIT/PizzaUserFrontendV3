@@ -323,7 +323,7 @@ const MobileMenu = () => {
               </div>
               <div className="header-number">
                 <i className="far fa-phone" />
-                Call : <a href="callto:020 3340 9635">020 3340 9635</a>
+                Call : <a href={`callto:${process.env.NEXT_PUBLIC_SHOP_MOBILE}`}>{process.env.NEXT_PUBLIC_SHOP_MOBILE}</a>
               </div>
               {/* Nav Search */}
               {/* <SearchBtn /> */}
@@ -642,7 +642,7 @@ const Header = () => {
           </div>
           <div className="header-number">
             <i className="far fa-phone" />
-            C a l l : <a href="callto:020 3340 9635">020 3340 9635</a>
+            C a l l : <a href={`callto:${process.env.NEXT_PUBLIC_SHOP_MOBILE}`}>{process.env.NEXT_PUBLIC_SHOP_MOBILE}</a>
           </div>
           {/* Nav Search */}
           {/* <SearchBtn /> */}

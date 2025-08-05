@@ -1,10 +1,9 @@
+
 "use client";
 
-import Counter from "@/components/Counter";
-import Testimonial from "@/components/Testimonial";
+
 import WellFoodLayout from "@/layout/WellFoodLayout";
 import Link from "next/link";
-// import { topItems } from "@/features/topItem";
 import TopMenuItem from "@/components/custom/Topmenu";
 import { useState, useEffect } from "react";
 import { API_URL } from "@/services/config";
@@ -43,17 +42,75 @@ const banners = [
   },
 ];
 
+// Utility function to parse time string (e.g., "17:00" -> {hour: 17, minute: 0})
+const parseTime = (timeString) => {
+  const [hour, minute] = timeString.split(':').map(Number);
+  return { hour, minute };
+};
+
+// Function to check if shop is open
+const isShopOpen = () => {
+  const now = new Date();
+  const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+  // Get environment variables with fallbacks
+  const shopName = process.env.NEXT_PUBLIC_SHOP_NAME || "addiscombepizza";
+  const mondayToThursdayHours = process.env.NEXT_PUBLIC_MONDAY_TO_THURSDAY_HOURS || "17:00-22:30";
+  const fridayToSaturdayHours = process.env.NEXT_PUBLIC_FRIDAY_TO_SATURDAY_HOURS || "17:00-23:00";
+  const sundayHours = process.env.NEXT_PUBLIC_SUNDAY_HOURS || "17:00-22:30";
+
+  let todayHours;
+  
+  // Determine today's hours based on day of week
+  if (currentDay === 0) { // Sunday
+    todayHours = sundayHours;
+  } else if (currentDay >= 1 && currentDay <= 4) { // Monday to Thursday
+    todayHours = mondayToThursdayHours;
+  } else { // Friday to Saturday
+    todayHours = fridayToSaturdayHours;
+  }
+
+  // Parse opening and closing times
+  const [openTime, closeTime] = todayHours.split('-');
+  const openTimeObj = parseTime(openTime);
+  const closeTimeObj = parseTime(closeTime);
+  
+  const openTimeInMinutes = openTimeObj.hour * 60 + openTimeObj.minute;
+  const closeTimeInMinutes = closeTimeObj.hour * 60 + closeTimeObj.minute;
+
+  // Check if current time is within opening hours
+  const isOpen = currentTimeInMinutes >= openTimeInMinutes && currentTimeInMinutes <= closeTimeInMinutes;
+
+  return {
+    isOpen,
+    todayHours,
+    shopName
+  };
+};
+
 const page = () => {
   const [combos, setCombos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pizzas, setPizzas] = useState([]);
   const [pizzaLoading, setPizzaLoading] = useState(true);
+  const [shopStatus, setShopStatus] = useState({ isOpen: false, todayHours: "", shopName: "" });
 
   useEffect(() => {
+    // Update shop status
+    setShopStatus(isShopOpen());
+
+    // Update shop status every minute
+    const interval = setInterval(() => {
+      setShopStatus(isShopOpen());
+    }, 60000); // Update every minute
+
     const fetchCombos = async () => {
       try {
         const response = await fetch(
-          "https://backend.addiscombepizza.co.uk/api/getAllcomboList"
+          `${API_URL}/getAllcomboList`
         );
         const data = await response.json();
         // Take only first 3 combos
@@ -68,7 +125,7 @@ const page = () => {
     const fetchPizzas = async () => {
       try {
         const response = await fetch(
-          "https://backend.addiscombepizza.co.uk/api/getAllPizzaList"
+          `${API_URL}/getAllPizzaList`
         );
         const data = await response.json();
         // Take only first 8 pizzas
@@ -82,6 +139,9 @@ const page = () => {
 
     fetchCombos();
     fetchPizzas();
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
   }, []);
 
   // Map database combos to banner format while keeping the same images
@@ -99,7 +159,6 @@ const page = () => {
 
   return (
     <WellFoodLayout bgBlack={true}>
-      {" "}
       {/* Hero Area Start */}
       <section
         className="hero-area-four bgs-cover pt-185 rpt-145 pb-120 rpb-110 rel z-1"
@@ -124,65 +183,20 @@ const page = () => {
               <div>
                 <span id="shop-status" style={{ 
                   fontWeight: 'bold',
-                  color: (() => {
-                    const now = new Date();
-                    const day = now.getDay();
-                    const hour = now.getHours();
-                    const minute = now.getMinutes();
-                    
-                    if (day === 0 || (day >= 1 && day <= 4)) {
-                      // Sunday-Thursday: 17:00-22:30
-                      if ((hour === 17 && minute >= 0) || (hour > 17 && hour < 22) || (hour === 22 && minute <= 30)) {
-                        return '#28a745';
-                      }
-                    } else if (day === 5 || day === 6) {
-                      // Friday-Saturday: 17:00-23:00
-                      if ((hour === 17 && minute >= 0) || (hour > 17 && hour < 23)) {
-                        return '#28a745';
-                      }
-                    }
-                    return '#dc3545';
-                  })()
+                  color: shopStatus.isOpen ? '#28a745' : '#dc3545'
                 }}>
-                  {(() => {
-                    const now = new Date();
-                    const day = now.getDay();
-                    const hour = now.getHours();
-                    const minute = now.getMinutes();
-                    
-                    if (day === 0 || (day >= 1 && day <= 4)) {
-                      // Sunday-Thursday: 17:00-22:30
-                      if ((hour === 17 && minute >= 0) || (hour > 17 && hour < 22) || (hour === 22 && minute <= 30)) {
-                        return 'OPEN';
-                      }
-                    } else if (day === 5 || day === 6) {
-                      // Friday-Saturday: 17:00-23:00
-                      if ((hour === 17 && minute >= 0) || (hour > 17 && hour < 23)) {
-                        return 'OPEN';
-                      }
-                    }
-                    return 'CLOSED';
-                  })()}
+                  {shopStatus.isOpen ? 'OPEN' : 'CLOSED'}
                 </span>
-                {' '}• Today: {(() => {
-                  const day = new Date().getDay();
-                  if (day === 5 || day === 6) {
-                    return '17:00-23:00';
-                  }
-                  return '17:00-22:30';
-                })()}
+                {' '}• Today: {shopStatus.todayHours}
               </div>
             </div>
-            <h1>addiscombepizza</h1>
+            <h1>{shopStatus.shopName}</h1>
             
-
             <img
               className="custom-hero-pizza"
               src="assets/images/hero/pizza-2-min.png"
               alt="Hero"
             />
-
-            {/* Yellow Button */}
 
             <Link href="menu-pizza" className="theme-btn order-button">
               O R D E R - N O W <i className="far fa-arrow-alt-right" />
@@ -203,204 +217,9 @@ const page = () => {
         </div>
       </section>
       {/* Hero Area End */}
-      {/* Headline area start */}
-      {/* <div className="headline-area pt-110 rpt-90 mb-105 rmb-85 rel z-1">
-        <span className="marquee-wrap white-text">
-          <span className="marquee-inner left">
-            <span className="marquee-item">Italian pizza</span>
-            <span className="marquee-item">
-              <i className="flaticon-star" />
-            </span>
-            <span className="marquee-item">delicious foods</span>
-            <span className="marquee-item">
-              <i className="flaticon-star" />
-            </span>
-            <span className="marquee-item">burger king</span>
-            <span className="marquee-item">
-              <i className="flaticon-star" />
-            </span>
-          </span>
-          <span className="marquee-inner left">
-            <span className="marquee-item">Italian pizza</span>
-            <span className="marquee-item">
-              <i className="flaticon-star" />
-            </span>
-            <span className="marquee-item">delicious foods</span>
-            <span className="marquee-item">
-              <i className="flaticon-star" />
-            </span>
-            <span className="marquee-item">burger king</span>
-            <span className="marquee-item">
-              <i className="flaticon-star" />
-            </span>
-          </span>
-          <span className="marquee-inner left">
-            <span className="marquee-item">Italian pizza</span>
-            <span className="marquee-item">
-              <i className="flaticon-star" />
-            </span>
-            <span className="marquee-item">delicious foods</span>
-            <span className="marquee-item">
-              <i className="flaticon-star" />
-            </span>
-            <span className="marquee-item">burger king</span>
-            <span className="marquee-item">
-              <i className="flaticon-star" />
-            </span>
-          </span>
-        </span>
-        <div className="headline-shapes">
-          <div className="shape one">
-            <img src="assets/images/shapes/tomato.png" alt="Shape" />
-          </div>
-          <div className="shape two">
-            <img src="assets/images/shapes/burger.png" alt="Shape" />
-          </div>
-        </div>
-      </div> */}
-      {/* Headline Area end */}
-      {/* About Us Area start */}
-      {/* <section className="about-us-area-four pb-95 rpb-65 rel z-1">
-        <div className="container">
-          <div className="row align-items-center">
-            <div className="col-lg-6">
-              <div
-                className="about-us-content text-white ms-0 rmb-25"
-                data-aos="fade-left"
-                data-aos-duration={1500}
-                data-aos-offset={50}
-              >
-                <div className="section-title mb-25">
-                  <span className="sub-title mb-5">learn About wellfood</span>
-                  <h2>we provide best Quality food for your health</h2>
-                </div>
-                <p>
-                  Welcome too restaurant, where culinary excellence meets warm
-                  hospitality in every dish we serve. Nestled in the heart of
-                  City Name our eatery invites you on a journey
-                </p>
-                <Link href="about" className="theme-btn mt-25 mb-60">
-                  learn more us <i className="far fa-arrow-alt-right" />
-                </Link>
-                <div className="row">
-                  <div className="col-sm-4 col-6">
-                    <div className="counter-item style-two counter-text-wrap">
-                      <span
-                        className="count-text k-plus"
-                        data-speed={3000}
-                        data-stop={34}
-                      >
-                        <Counter end={34} />
-                      </span>
-                      <span className="counter-title">Organic Planting</span>
-                    </div>
-                  </div>
-                  <div className="col-sm-4 col-6">
-                    <div className="counter-item style-two counter-text-wrap">
-                      <span
-                        className="count-text plus"
-                        data-speed={3000}
-                        data-stop={356}
-                      >
-                        <Counter end={356} />
-                      </span>
-                      <span className="counter-title">Passionate Chef's</span>
-                    </div>
-                  </div>
-                  <div className="col-sm-4 col-6">
-                    <div className="counter-item style-two counter-text-wrap">
-                      <span
-                        className="count-text plus"
-                        data-speed={3000}
-                        data-stop={8534}
-                      >
-                        <Counter end={8534} />
-                      </span>
-                      <span className="counter-title">Favourite Dishes</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-6">
-              <div
-                className="about-image-four mb-30"
-                data-aos="fade-right"
-                data-aos-duration={1500}
-                data-aos-offset={50}
-              >
-                <div className="row">
-                  <div className="col">
-                    <img
-                      src="assets/images/about/about-four1.jpg"
-                      alt="About"
-                    />
-                  </div>
-                  <div className="col mt-80">
-                    <img
-                      src="assets/images/about/about-four2.jpg"
-                      alt="About"
-                    />
-                  </div>
-                </div>
-                <div className="badge">
-                  <img
-                    src="assets/images/about/about-four-badge.jpg"
-                    alt="Badge"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section> */}
-      {/* About Us Area end */}
-      {/* Category Banner area start */}
-      {/* <div className="category-banner-area-two pb-85 rpb-65">
-        <div className="container-fluid">
-          <div className="row row-cols-lg-3 row-cols-sm-2 row-cols-1 justify-content-center">
-            {loading ? (
-              <div className="col-12 text-center">
-                <div className="spinner-border text-light" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-              </div>
-            ) : (
-              bannerCombos.map((banner) => (
-                <div
-                  key={banner.id}
-                  className="col"
-                  data-aos="fade-up"
-                  data-aos-delay={banner.delay}
-                  data-aos-duration={1500}
-                  data-aos-offset={50}
-                >
-                  <div
-                    className={`category-banner-item ${banner.style}`}
-                    style={{
-                      backgroundImage: `url(${banner.img})`,
-                    }}
-                  >
-                    <h3>{banner.title}</h3>
-                    {banner.showSub && <h4>{banner.subtitle}</h4>}
-                    <Link
-                      href={{
-                        pathname: "/combo-details",
-                        query: {
-                          id: banner.id,
-                        },
-                      }}
-                      className="theme-btn"
-                    >
-                      Shop now <i className="far fa-arrow-alt-right" />
-                    </Link>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div> */}
+
+    
+
       {/* Combo Banner start */}
       <div className="category-banner-area-two pb-85 rpb-65">
         <div className="container-fluid">
@@ -426,7 +245,7 @@ const page = () => {
                       index === 1 ? "style-four" : "style-three"
                     }`}
                     style={{
-                      backgroundImage: `url(https://backend.addiscombepizza.co.uk/api/images/combo-${combo.id}.png)`,
+                      backgroundImage: `url(${API_URL}/images/combo-${combo.id}.png)`,
                     }}
                   >
                     <h3>{combo.name.toUpperCase()}</h3>
@@ -448,53 +267,9 @@ const page = () => {
         </div>
       </div>
       {/* Combo Banner end */}
-      {/* Video Area start */}
-      {/* <div className="video-area pb-120 rpb-90 rel z-1">
-        <div className="container">
-          <div className="video-title-wrap">
-            <span
-              className="video-title"
-              data-aos="fade-left"
-              data-aos-duration={1500}
-              data-aos-offset={50}
-            >
-              Fried Chicken
-            </span>
-            <span
-              className="video-title text-end"
-              data-aos="fade-right"
-              data-aos-duration={1500}
-              data-aos-offset={50}
-            >
-              quality food
-            </span>
-          </div>
-          <div
-            className="video-wrap overlay"
-            data-aos="zoom-in"
-            data-aos-delay={50}
-            data-aos-duration={1500}
-            data-aos-offset={50}
-          >
-            <img src="assets/images/background/video.jpg" alt="Video" />
-            <a
-              href="https://www.youtube.com/watch?v=9Y7ma241N8k"
-              className="mfp-iframe video-play"
-            >
-              <i className="fas fa-play" />
-            </a>
-          </div>
-        </div>
-        <div className="testimonials-shapes">
-          <div className="shape three">
-            <img src="assets/images/shapes/video1.png" alt="Shape" />
-          </div>
-          <div className="shape two">
-            <img src="assets/images/shapes/video2.png" alt="Shape" />
-          </div>
-        </div>
-      </div> */}
-      {/* Video Area End */}
+
+   
+
       {/* Headline area start */}
       <div className="headline-area mb-105 rmb-85 rel z-1">
         <span className="marquee-wrap white-text">
@@ -507,7 +282,7 @@ const page = () => {
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
-            <span className="marquee-item">burger king</span>
+            <span className="marquee-item">fresh ingredients</span>
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
@@ -521,7 +296,7 @@ const page = () => {
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
-            <span className="marquee-item">burger king</span>
+            <span className="marquee-item">fresh ingredients</span>
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
@@ -535,7 +310,7 @@ const page = () => {
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
-            <span className="marquee-item">burger king</span>
+            <span className="marquee-item">fresh ingredients</span>
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
@@ -551,6 +326,7 @@ const page = () => {
         </div>
       </div>
       {/* Headline Area end */}
+
       {/* Popular Menu Area start */}
       <section className="popular-menu-area-three pb-130 rpb-100 rel z-1">
         <div className="container">
@@ -564,7 +340,7 @@ const page = () => {
               >
                 <span className="sub-title mb-5">popular menu</span>
                 <h2>
-                  we provide exclusive food based on UK explore our popular food
+                  we provide exclusive food based on authentic recipes explore our popular food
                 </h2>
               </div>
             </div>
@@ -672,96 +448,9 @@ const page = () => {
         </div>
       </section>
       {/* Popular Menu Area end */}
-      {/* Gallery Area Start */}
-      {/* <div className="gallery-area-two pb-100 rpb-70 rel z-1">
-        <div className="container-fluid">
-          <div className="row">
-            <div
-              className="col-xl-5 col-md-8"
-              data-aos="fade-up"
-              data-aos-duration={1500}
-              data-aos-offset={50}
-            >
-              <div className="gallery-item-two">
-                <img
-                  src="assets/images/gallery/gallery-two2.jpg"
-                  alt="Gallery"
-                />
-              </div>
-            </div>
-            <div
-              className="col-xl-4 col-md-6 gallery-order"
-              data-aos="fade-up"
-              data-aos-delay={100}
-              data-aos-duration={1500}
-              data-aos-offset={50}
-            >
-              <div className="gallery-item-two">
-                <img
-                  src="assets/images/gallery/gallery-two3.jpg"
-                  alt="Gallery"
-                />
-              </div>
-            </div>
-            <div
-              className="col-xl-3 col-md-4 col-sm-6"
-              data-aos="fade-up"
-              data-aos-delay={50}
-              data-aos-duration={1500}
-              data-aos-offset={50}
-            >
-              <div className="gallery-item-two">
-                <img
-                  src="assets/images/gallery/gallery-two1.jpg"
-                  alt="Gallery"
-                />
-              </div>
-            </div>
-            <div
-              className="col-xl-3 col-md-4 col-sm-6"
-              data-aos="fade-up"
-              data-aos-duration={1500}
-              data-aos-offset={50}
-            >
-              <div className="gallery-item-two text-end">
-                <img
-                  src="assets/images/gallery/gallery-two5.jpg"
-                  alt="Gallery"
-                />
-              </div>
-            </div>
-            <div
-              className="col-xl-4 col-md-6 gallery-order"
-              data-aos="fade-up"
-              data-aos-delay={50}
-              data-aos-duration={1500}
-              data-aos-offset={50}
-            >
-              <div className="gallery-item-two">
-                <img
-                  src="assets/images/gallery/gallery-two4.jpg"
-                  alt="Gallery"
-                />
-              </div>
-            </div>
-            <div
-              className="col-xl-5 col-md-8"
-              data-aos="fade-up"
-              data-aos-delay={100}
-              data-aos-duration={1500}
-              data-aos-offset={50}
-            >
-              <div className="gallery-item-two">
-                <img
-                  src="assets/images/gallery/gallery-two6.jpg"
-                  alt="Gallery"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div> */}
-      {/* Gallery Area End */}
+
+     
+
       {/* Headline area start */}
       <div className="headline-area bgc-black pt-120 rpt-90 rel z-2">
         <span className="marquee-wrap white-text">
@@ -774,7 +463,7 @@ const page = () => {
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
-            <span className="marquee-item">burger king</span>
+            <span className="marquee-item">fresh ingredients</span>
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
@@ -788,7 +477,7 @@ const page = () => {
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
-            <span className="marquee-item">burger king</span>
+            <span className="marquee-item">fresh ingredients</span>
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
@@ -802,7 +491,7 @@ const page = () => {
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
-            <span className="marquee-item">burger king</span>
+            <span className="marquee-item">fresh ingredients</span>
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
@@ -818,6 +507,7 @@ const page = () => {
         </div>
       </div>
       {/* Headline Area end */}
+
       {/* Special Offer Area start */}
       <section className="special-offer-area-two bgc-black pt-105 rpt-85 pb-130 rpb-100 rel z-1">
         <div className="container">
@@ -834,14 +524,14 @@ const page = () => {
                   alt="Special Food"
                 />
                 <div className="section-title mt-45 mb-25">
-                  <h2>Buy Any 2</h2>
+                  <h2>Buy Any 2 Pizzas</h2>
                 </div>
                 <p className="ms-0">
-             Comming soon...
+                 comming soon...
                 </p>
-                <a href="menu-pizza" className="theme-btn mt-15">
+                <Link href="menu-pizza" className="theme-btn mt-15">
                   order now <i className="far fa-arrow-alt-right" />
-                </a>
+                </Link>
               </div>
             </div>
             <div className="col-lg-7">
@@ -853,7 +543,7 @@ const page = () => {
               >
                 <img
                   src="assets/images/offer/offer-pizza-min.png"
-                  alt="Burger Image"
+                  alt="Pizza Image"
                 />
                 <div
                   className="offer-badge"
@@ -863,14 +553,14 @@ const page = () => {
                 >
                   <span>
                     Buy Any 2 
- <br />
+                    <br />
                     <span className="price">£15.95</span>
                   </span>
                 </div>
                 <span className="marquee-wrap style-two text-white">
-                  <span className="marquee-inner left">mix food meal</span>
-                  <span className="marquee-inner left">mix food meal</span>
-                  <span className="marquee-inner left">mix food meal</span>
+                  <span className="marquee-inner left">pizza combo deal</span>
+                  <span className="marquee-inner left">pizza combo deal</span>
+                  <span className="marquee-inner left">pizza combo deal</span>
                 </span>
               </div>
             </div>
@@ -886,13 +576,16 @@ const page = () => {
         </div>
       </section>
       {/* Special Offer Area end */}
-      {/* Testimonials Two Area start */}
+
+      {/* Testimonials Area start */}
       {/* <Testimonial /> */}
-      {/* Testimonials Two Area end */}
-      {/* Blog Area start */}
-      {/*  */}
-      {/* Blog Area end */}
+      {/* Testimonials Area end */}
+
+  
+
+   
     </WellFoodLayout>
   );
 };
+
 export default page;
