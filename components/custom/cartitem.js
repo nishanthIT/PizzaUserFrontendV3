@@ -17,7 +17,7 @@ const CartItem = ({
     <div className="cart-item">
       {/* <img src={image} alt={title} className="cart-item-image" /> */}
       <img
-        src={`${process.env.NEXT_PUBLIC_API_URL}api/images/${image}`}
+        src={`${process.env.NEXT_PUBLIC_API_URL}/api/images/${image}`}
         alt={title}
         className="cart-item-image"
       />
