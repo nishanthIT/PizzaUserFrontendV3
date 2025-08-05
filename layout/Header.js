@@ -142,7 +142,7 @@ const MobileMenu = () => {
                 <div className="logo">
                   <Link href="/">
                     <img
-                      src="assets/images/logos/logo.png"
+                      src="assets/images/logos/logo_circle.png"
                       alt="Logo"
                       title="Logo"
                        className="w-16 h-auto" 
@@ -158,7 +158,7 @@ const MobileMenu = () => {
                     <div className="mobile-logo">
                       <Link href="/">
                         <img
-                          src="assets/images/logos/logo.png"
+                          src="assets/images/logos/logo_circle.png"
                           alt="Logo"
                           title="Logo"
                         />
@@ -383,7 +383,7 @@ const Header = () => {
     //             <div className="logo">
     //               <Link href="/">
     //                 <img
-    //                   src="assets/images/logos/logo.png"
+    //                   src="assets/images/logos/logo_circle.png"
     //                   alt="Logo"
     //                   title="Logo"
     //                 />
@@ -397,7 +397,7 @@ const Header = () => {
     //                 <div className="mobile-logo">
     //                   <Link href="/">
     //                     <img
-    //                       src="assets/images/logos/logo.png"
+    //                       src="assets/images/logos/logo_circle.png"
     //                       alt="Logo"
     //                       title="Logo"
     //                     />
@@ -596,7 +596,7 @@ const Header = () => {
           <div className="logo-outer">
             <div className="logo">
               <Link href="/">
-                <img src="assets/images/logos/logo.png" alt="Logo" title="Logo"    style={{ width: '100px', height: 'auto' }} />
+                <img src="assets/images/logos/logo_circle.png" alt="Logo" title="Logo"    style={{ width: '100px', height: 'auto' }} />
               </Link>
             </div>
           </div>
@@ -606,7 +606,7 @@ const Header = () => {
               <div className="navbar-header py-10">
                 <div className="mobile-logo">
                   <Link href="/">
-                    <img src="assets/images/logos/logo.png" alt="Logo" title="Logo"  className="w-16 h-auto"  />
+                    <img src="assets/images/logos/logo_circle.png" alt="Logo" title="Logo"  className="w-16 h-auto"  />
                   </Link>
                 </div>
                 {/* Toggle Button */}
