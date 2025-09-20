@@ -373,7 +373,7 @@ const page = () => {
                               id: item.id,
                               title: item.name,
                               price: item.sizes
-                                ? JSON.parse(item.sizes).SMALL
+                                ? JSON.parse(item.sizes).MEDIUM
                                 : "0",
                               decs:
                                 item.description || "No description available",
@@ -415,7 +415,7 @@ const page = () => {
                               id: item.id,
                               title: item.name,
                               price: item.sizes
-                                ? JSON.parse(item.sizes).SMALL
+                                ? JSON.parse(item.sizes).MEDIUM
                                 : "0",
                               decs:
                                 item.description || "No description available",

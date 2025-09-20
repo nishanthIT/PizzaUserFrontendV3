@@ -67,9 +67,9 @@ const page = () => {
   // Function to map actual sizes to display sizes
   const mapSizeForDisplay = (actualSize) => {
     const sizeMapping = {
-      'SMALL': 'MEDIUM',
-      'MEDIUM': 'LARGE',
-      'LARGE': 'SUPERSIZE'
+      'MEDIUM': 'MEDIUM',
+      'LARGE': 'LARGE', 
+      'SUPER_SIZE': 'SUPER SIZE'
     };
     
     return sizeMapping[actualSize?.toUpperCase()] || actualSize;

@@ -7,15 +7,46 @@ const CartItem = ({
   ingredients,
   quantity,
   pizzaBase,
+  sauce, // Add sauce prop
+  isMealDeal, // Add meal deal prop
+  selectedSides, // Add selected sides prop (legacy)
+  selectedDrinks, // Add selected drinks prop (legacy)
+  sides, // Add sides array prop (new combo style)
+  drinks, // Add drinks array prop (new combo style)
+  isPeriPeri, // Add Peri Peri flag prop
+  isComboStyleItem, // Add combo style flag prop
+  type, // Add item type
   price,
   onIncrement,
   onDecrement,
   onDelete,
 }) => {
-  // console.log("njnjnjnnj",ingredients)
+  // Parse sides and drinks if they exist (legacy format)
+  let legacySides = [];
+  let legacyDrinks = [];
+  
+  if (selectedSides) {
+    try {
+      legacySides = JSON.parse(selectedSides);
+    } catch (error) {
+      console.error("Error parsing selected sides:", error);
+    }
+  }
+  
+  if (selectedDrinks) {
+    try {
+      legacyDrinks = JSON.parse(selectedDrinks);
+    } catch (error) {
+      console.error("Error parsing selected drinks:", error);
+    }
+  }
+
+  // Use new format sides/drinks if available, otherwise use legacy format
+  const finalSides = sides && sides.length > 0 ? sides : legacySides;
+  const finalDrinks = drinks && drinks.length > 0 ? drinks : legacyDrinks;
+
   return (
     <div className="cart-item">
-      {/* <img src={image} alt={title} className="cart-item-image" /> */}
       <img
         src={`${process.env.NEXT_PUBLIC_API_URL}/api/images/${image}`}
         alt={title}
@@ -24,15 +55,51 @@ const CartItem = ({
       <div className="cart-item-details">
         <h3 className="cart-item-title">{title}</h3>
         <p className="cart-item-title">{size}</p>
-        {pizzaBase && (
+        
+        {/* Pizza base for pizzas */}
+        {pizzaBase && !isComboStyleItem && (
           <p className="cart-item-ingredients">Base: {pizzaBase}</p>
         )}
-        <p className="cart-item-ingredients">
-          {" "}
-          Ingredients:{" "}
-          {ingredients?.map((ingredient) => ingredient.name).join(", ") ||
-            "No ingredients"}
-        </p>
+        
+        {/* Sauce for all items that have it */}
+        {sauce && (
+          <p className="cart-item-ingredients">Sauce: {sauce}</p>
+        )}
+        
+        {/* Meal deal details for Peri Peri and Combo Style items */}
+        {(isPeriPeri || isComboStyleItem || type === 'comboStyleItem') && isMealDeal && (
+          <div className="meal-deal-details" style={{ marginBottom: "10px" }}>
+            <p className="cart-item-ingredients" style={{ 
+              color: "#ff6b35", 
+              fontWeight: "600",
+              fontSize: "0.85rem"
+            }}>
+              🌟 Meal Deal
+            </p>
+            
+            {finalSides.length > 0 && (
+              <p className="cart-item-ingredients" style={{ fontSize: "0.85rem" }}>
+                Sides: {finalSides.map(side => side.name).join(", ")}
+              </p>
+            )}
+            
+            {finalDrinks.length > 0 && (
+              <p className="cart-item-ingredients" style={{ fontSize: "0.85rem" }}>
+                Drinks: {finalDrinks.map(drink => drink.name).join(", ")}
+              </p>
+            )}
+          </div>
+        )}
+        
+        {/* Ingredients for pizzas only */}
+        {!isPeriPeri && !isComboStyleItem && type !== 'comboStyleItem' && (
+          <p className="cart-item-ingredients">
+            Ingredients:{" "}
+            {ingredients?.map((ingredient) => ingredient.name).join(", ") ||
+              "No ingredients"}
+          </p>
+        )}
+        
         <div className="cart-item-actions">
           <div className="quantity-controls">
             <button className="quantity-btn" onClick={onDecrement}>
@@ -43,7 +110,7 @@ const CartItem = ({
               +
             </button>
           </div>
-          <span className="cart-item-price">${price}</span>
+          <span className="cart-item-price">£{price}</span>
         </div>
       </div>
       <button className="delete-btn" onClick={onDelete}>

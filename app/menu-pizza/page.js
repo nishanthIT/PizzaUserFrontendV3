@@ -32,9 +32,19 @@ const getCategoryIcon = (categoryName) => {
     return <Pizza size={40} color="#ff0000" />;
   }
   
+  // Check for chicken - combo style items are here
+  if (name?.includes('chicken')) {
+    return <Hamburger size={40} color="#ff0000" />;
+  }
+  
   // Check for burgers
   if (name?.includes('burger')) {
     return <Hamburger size={40} color="#ff0000" />;
+  }
+  
+  // Check for sides
+  if (name?.includes('side')) {
+    return <UtensilsCrossed size={40} color="#ff0000" />;
   }
   
   // Check for drinks/beverages
@@ -51,7 +61,7 @@ const getBasePrice = (sizes) => {
   try {
     const sizeObj = typeof sizes === "string" ? JSON.parse(sizes) : sizes || {};
     console.log("Parsed sizessssssssssssssss:", sizeObj);
-    return sizeObj.SMALL || sizeObj.small || "10";
+    return sizeObj.MEDIUM || sizeObj.medium || "10";
   } catch (e) {
     return "10";
   }
@@ -62,6 +72,7 @@ const MenuPizzaPage = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [pizzas, setPizzas] = useState([]);
   const [otherItems, setOtherItems] = useState([]);
+  const [comboStyleItems, setComboStyleItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingItems, setLoadingItems] = useState(false);
   const [error, setError] = useState(null);
@@ -78,20 +89,26 @@ const MenuPizzaPage = () => {
       // Starters/Appetizers get highest priority (0)
       if (name?.includes('starter') || name?.includes('appetizer')) return 0;
       
-      // Pizza gets second priority (1)
+      // Pizza gets second priority (1) - but we don't have pizza category
       if (name?.includes('pizza')) return 1;
       
-      // Burgers get third priority (2)
-      if (name?.includes('burger')) return 2;
+      // Chicken gets priority (2) - this is where our combo style items are
+      if (name?.includes('chicken')) return 2;
       
-      // Drinks/Beverages get fourth priority (3)
-      if (name?.includes('drink') || name?.includes('beverage')) return 3;
+      // Burgers get third priority (3)
+      if (name?.includes('burger')) return 3;
       
-      // Desserts get fifth priority (4)
-      if (name?.includes('dessert')) return 4;
+      // Sides get fourth priority (4) 
+      if (name?.includes('side')) return 4;
       
-      // Everything else goes to the end (5)
-      return 5;
+      // Drinks/Beverages get fifth priority (5)
+      if (name?.includes('drink') || name?.includes('beverage')) return 5;
+      
+      // Desserts get sixth priority (6)
+      if (name?.includes('dessert')) return 6;
+      
+      // Everything else goes to the end (7)
+      return 7;
     };
     
     return categories.sort((a, b) => {
@@ -143,11 +160,16 @@ const MenuPizzaPage = () => {
         return;
       }
 
+      console.log("🚀 STARTING loadItems for category:", selectedCategory);
+
       try {
         setLoadingItems(true);
         console.log("Loading items for category:", selectedCategory);
 
-        // Fetch both pizzas and other items in parallel
+        // Test basic fetch first
+        console.log("🧪 Testing API URL:", API_URL);
+        
+        // Fetch pizzas and other items first
         const [pizzaResponse, otherItemsResponse] = await Promise.all([
           fetchPizzasByCategory(selectedCategory),
           fetch(
@@ -157,6 +179,31 @@ const MenuPizzaPage = () => {
 
         console.log("Pizza API Response:", pizzaResponse);
         console.log("Other Items API Response:", otherItemsResponse);
+        
+        // CRITICAL DEBUG POINT - IF YOU DON'T SEE THIS LOG, THERE'S A CACHING ISSUE!
+       
+
+        // Fetch combo style items separately to avoid Promise.all issues
+       
+        let comboStyleResponse = [];
+        try {
+          const comboStyleUrl = `${API_URL}/getComboStyleItems?categoryId=${selectedCategory}`;
+          console.log("🔍 Combo style URL:", comboStyleUrl);
+          
+          const response = await fetch(comboStyleUrl);
+          console.log("🔍 Combo style response status:", response.status);
+          
+          if (response.ok) {
+            comboStyleResponse = await response.json();
+            console.log("🔍 Combo style response data:", comboStyleResponse);
+          } else {
+            console.error("❌ Combo style fetch failed with status:", response.status);
+          }
+        } catch (comboError) {
+          console.error("❌ Error fetching combo style items:", comboError);
+        }
+
+        console.log("Final Combo Style Response:", comboStyleResponse);
 
         // Handle pizza data
         let pizzasData = [];
@@ -176,6 +223,15 @@ const MenuPizzaPage = () => {
         // Handle other items data
         if (otherItemsResponse) {
           setOtherItems(otherItemsResponse);
+        }
+
+        // Handle combo style items data
+        if (Array.isArray(comboStyleResponse) && comboStyleResponse.length > 0) {
+          console.log(`✅ Found ${comboStyleResponse.length} combo style items`);
+          setComboStyleItems(comboStyleResponse);
+        } else {
+          console.log("❌ No combo style items found");
+          setComboStyleItems([]);
         }
       } catch (err) {
         console.error("Error loading items:", err);
@@ -221,7 +277,7 @@ const MenuPizzaPage = () => {
         img: pizza?.imageUrl
           ? (pizza.imageUrl.startsWith('http') 
               ? pizza.imageUrl 
-              : `/uploads/${pizza.imageUrl}`)
+              : `/${pizza.imageUrl}`)
           : "/assets/images/food/pm-food1.png",
         type: "pizza",
         ingredients: Array.isArray(pizza?.defaultIngredients)
@@ -258,12 +314,44 @@ const MenuPizzaPage = () => {
       img: item?.imageUrl 
         ? (item.imageUrl.startsWith('http') 
             ? item.imageUrl 
-            : `/uploads/${item.imageUrl}`)
+            : `${item.imageUrl}`)
         : "/assets/images/food/pm-food1.png",
       type: "other",
       isOtherItem: true, // Add this flag for better identification
       otherItemId: item?.id, // Keep reference to original ID
     }));
+  };
+
+  // Format Combo Style items for menu
+  const formatComboStyleItemsForMenu = (items) => {
+    if (!Array.isArray(items)) return [];
+
+    return items.map((item) => {
+      // Get the smallest size price as the display price
+      const sizePricing = item?.sizePricing || {};
+      const prices = Object.values(sizePricing).map(p => parseFloat(p.basePrice || 0));
+      const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+
+      return {
+        id: item?.id || Math.random().toString(),
+        title: item?.name || "Unnamed Combo Item",
+        price: minPrice,
+        decs: item?.description || "Delicious combo style item with choice of sauce",
+        img: item?.imageUrl 
+          ? (item.imageUrl.startsWith('http') 
+              ? item.imageUrl 
+              : `${item.imageUrl}`)
+          : "/assets/images/food/pm-food1.png",
+        type: "comboStyle", // Special type for Combo Style items
+        isComboStyleItem: true,
+        itemId: item?.id, // Add itemId for linking
+        comboStyleItemId: item?.id,
+        sizePricing: item?.sizePricing,
+        availableSauces: item?.availableSauces,
+        mealDealConfig: item?.mealDealConfig,
+        showPriceFrom: true, // Indicate that this is a "from" price
+      };
+    });
   };
 
   // Create menu items with proper fallbacks
@@ -274,9 +362,23 @@ const MenuPizzaPage = () => {
       category.id === selectedCategory
         ? formatOtherItemsForMenu(otherItems)
         : [];
-    const items = [...categoryPizzas, ...categoryOtherItems];
+    
+    // Show combo style items in the selected category if they belong to it
+    // Since all combo style items are in "chicken" category, they'll show there
+    const categoryComboStyleItems = (category.id === selectedCategory) 
+      ? formatComboStyleItemsForMenu(comboStyleItems) 
+      : [];
+    
+    const items = [...categoryPizzas, ...categoryOtherItems, ...categoryComboStyleItems];
 
-    console.log(`Menu items for category ${category.id}:`, items);
+    console.log(`📋 Menu items for category ${category.id} (${category.title}):`, {
+      pizzas: categoryPizzas.length,
+      otherItems: categoryOtherItems.length,
+      comboStyleItems: categoryComboStyleItems.length,
+      total: items.length,
+      itemTitles: items.map(item => item.title)
+    });
+    
     return {
       ...category,
       items,

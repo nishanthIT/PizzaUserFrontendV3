@@ -21,6 +21,7 @@ const page = () => {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [selectedSauce, setSelectedSauce] = useState("");
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -35,6 +36,18 @@ const page = () => {
 
         setItem(data);
         setTotalPrice(Number(data.price));
+        
+        // If the item has available sauces, set the first one as default
+        if (data.availableSauces) {
+          try {
+            const sauces = JSON.parse(data.availableSauces);
+            if (sauces.length > 0) {
+              setSelectedSauce(sauces[0]);
+            }
+          } catch (error) {
+            console.error("Error parsing available sauces:", error);
+          }
+        }
       } catch (error) {
         console.error("Error fetching item:", error);
         setError("Failed to load item details. Please try again later.");
@@ -71,6 +84,21 @@ const page = () => {
 
   const handleAddToCart = (e) => {
     if (quantity > 0) {
+      // Check if sauce is required and selected
+      let availableSauces = [];
+      if (item.availableSauces) {
+        try {
+          availableSauces = JSON.parse(item.availableSauces);
+        } catch (error) {
+          console.error("Error parsing available sauces:", error);
+        }
+      }
+      
+      if (availableSauces.length > 0 && !selectedSauce) {
+        alert("Please select a sauce for this item.");
+        return;
+      }
+
       dispatch(
         addItem({
           id: itemId,
@@ -84,6 +112,7 @@ const page = () => {
           size: "regular",
           basePrice: Number(item.price),
           finalPrice: Number(totalPrice),
+          sauce: selectedSauce || null, // Add sauce selection
         })
       );
     } else {
@@ -151,6 +180,87 @@ const page = () => {
                 <h2>{item?.name}</h2>
                 <p className="price">£ {item?.price}</p>
                 <p>{item?.description}</p>
+
+                {/* Sauce Selection */}
+                {item?.availableSauces && (() => {
+                  try {
+                    const sauces = JSON.parse(item.availableSauces);
+                    if (sauces.length > 0) {
+                      return (
+                        <div style={{ marginBottom: "25px" }}>
+                          <h5 style={{ 
+                            margin: "0 0 15px 0", 
+                            fontSize: "1.2rem", 
+                            fontWeight: "600",
+                            color: "#333"
+                          }}>
+                            Choose Your Sauce
+                          </h5>
+                          <div style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                            gap: "10px"
+                          }}>
+                            {sauces.map((sauce) => (
+                              <label
+                                key={sauce}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  padding: "10px 15px",
+                                  border: `2px solid ${selectedSauce === sauce ? "#ff6b35" : "#eee"}`,
+                                  borderRadius: "8px",
+                                  cursor: "pointer",
+                                  backgroundColor: selectedSauce === sauce ? "#fff5f2" : "#fff",
+                                  transition: "all 0.3s ease",
+                                  fontSize: "0.95rem",
+                                  fontWeight: selectedSauce === sauce ? "600" : "400",
+                                  color: selectedSauce === sauce ? "#ff6b35" : "#333"
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (selectedSauce !== sauce) {
+                                    e.target.style.borderColor = "#ff6b35";
+                                    e.target.style.backgroundColor = "#fff5f2";
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (selectedSauce !== sauce) {
+                                    e.target.style.borderColor = "#eee";
+                                    e.target.style.backgroundColor = "#fff";
+                                  }
+                                }}
+                              >
+                                <input
+                                  type="radio"
+                                  name="sauce"
+                                  value={sauce}
+                                  checked={selectedSauce === sauce}
+                                  onChange={(e) => setSelectedSauce(e.target.value)}
+                                  style={{ 
+                                    marginRight: "8px",
+                                    accentColor: "#ff6b35"
+                                  }}
+                                />
+                                {sauce}
+                              </label>
+                            ))}
+                          </div>
+                          <p style={{
+                            fontSize: "0.85rem",
+                            color: "#666",
+                            margin: "8px 0 0 0",
+                            fontStyle: "italic"
+                          }}>
+                            ✨ No extra charge for sauce selection
+                          </p>
+                        </div>
+                      );
+                    }
+                  } catch (error) {
+                    console.error("Error parsing available sauces:", error);
+                  }
+                  return null;
+                })()}
 
                 {/* Quantity Controls */}
                 <form className="add-to-cart mb-4">

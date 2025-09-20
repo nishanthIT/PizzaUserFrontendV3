@@ -9,6 +9,11 @@ const calculatePrice = (item) => {
     return item.price;
   }
 
+  if (item.type === "comboStyle") {
+    // For combo style items, show "from" price
+    return item.price;
+  }
+
   // const ingredientCost = (item.ingredients || []).reduce(
   //   (sum, ingredient) =>
   //     ingredient.quantity > 0
@@ -30,7 +35,26 @@ const calculatePrice = (item) => {
 };
 
 const getItemLink = (item) => {
+  if (item.type === "comboStyle") {
+    // For Combo Style items, go to the combo style menu with specific item ID
+    return `/combo-style-menu?itemId=${item.itemId || item.id}`;
+  }
+  
   if (item.type === "other") {
+    // Check if this is a chicken item that should use combo style
+    const itemName = item.title?.toLowerCase() || "";
+    const isChickenItem = itemName.includes("peri") || 
+                         itemName.includes("chicken wings") || 
+                         itemName.includes("grilled chicken") ||
+                         itemName.includes("quarter") ||
+                         itemName.includes("half") ||
+                         itemName.includes("whole");
+    
+    if (isChickenItem) {
+      // Redirect chicken items to combo style menu
+      return "/combo-style-menu";
+    }
+    
     return {
       pathname: "/otherItem-details",
       query: {
@@ -58,24 +82,43 @@ const getItemLink = (item) => {
 };
 
 const Item = ({ item }) => {
+  const getImageSrc = () => {
+    if (item.type === "comboStyle") {
+      return `${API_URL}/images/${item.img}`;
+    }
+    if (item.type === "other") {
+      return `${API_URL}/images/other-${item.id}.png`;
+    }
+    return `${API_URL}/images/pizza-${item.id}.png`;
+  };
+
+  const formatPrice = () => {
+    const price = calculatePrice(item);
+    if (item.type === "comboStyle" && item.showPriceFrom) {
+      return `from £${price}`;
+    }
+    return `£${price}`;
+  };
+
   return (
     <div className="food-menu-item style-two custom-food-item">
       <div className="image">
         <img
-          src={
-            item.type === "other"
-              ? `${API_URL}/images/other-${item.id}.png`
-              : `${API_URL}/images/pizza-${item.id}.png`
-          }
+          src={getImageSrc()}
           alt={item.title}
         />
       </div>
       <div className="content">
         <h5>
           <span className="title">{item.title}</span> <span className="dots" />{" "}
-          <span className="price">£{calculatePrice(item)}</span>
+          <span className="price">{formatPrice()}</span>
         </h5>
         <p>{item.decs}</p>
+        {item.type === "comboStyle" && (
+          <small style={{ color: "#ff6b35", fontWeight: "600" }}>
+            Multiple sizes available • Choice of sauce included
+          </small>
+        )}
       </div>
     </div>
   );

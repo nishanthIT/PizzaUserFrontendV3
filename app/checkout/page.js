@@ -12,6 +12,8 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PizzaLoader from "@/components/pizzaLoader";
+import PostcodeAutocomplete from "@/components/PostcodeAutocomplete";
+import SimplePostcodeInput from "@/components/SimplePostcodeInput";
 
 const Page = () => {
   const cartItems = useSelector(selectCartItems);
@@ -21,7 +23,8 @@ const Page = () => {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
-  const [selectedZipcode, setSelectedZipcode] = useState("");
+  const [postcode, setPostcode] = useState(""); // Changed from selectedZipcode
+  const [postcodeValidation, setPostcodeValidation] = useState({ isValid: false, message: '' });
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [verified, setVerified] = useState(false);
@@ -41,8 +44,21 @@ const Page = () => {
   const [preorderDate, setPreorderDate] = useState("");
   const [preorderTime, setPreorderTime] = useState("");
 
-  // Sample zipcodes for delivery
-  const availableZipcodes = ["Within 1 km", "Within 2 km", "Within 3 km"];
+  // Handle postcode validation result
+  const handlePostcodeValidation = (validationResult) => {
+    setPostcodeValidation(validationResult);
+    if (validationResult.isValid) {
+      toast.success(`✅ ${validationResult.message}`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    } else if (validationResult.message) {
+      toast.error(`❌ ${validationResult.message}`, {
+        position: "top-right",
+        autoClose: 5000,
+      });
+    }
+  };
 
   const renderCount = useRef(0);
   useEffect(() => {
@@ -284,6 +300,10 @@ const Page = () => {
       return;
     }
 
+    if (deliveryMethod === "delivery" && (!postcode || !postcodeValidation.isValid)) {
+      toast.error("Please enter a valid postcode within our delivery area");
+      return;
+    }
 
     if (orderTiming === "preorder" && (!preorderDate || !preorderTime)) {
       toast.error("Please select preorder date and time");
@@ -317,7 +337,8 @@ const Page = () => {
             deliveryMethod,
             name,
             address,
-            deliveryAddress: address, // Add this for backend compatibility
+            postcode: deliveryMethod === "delivery" ? postcode : "", // Include validated postcode
+            deliveryAddress: deliveryMethod === "delivery" ? `${address}, ${postcode}` : address, // Combined address
             pickupTime,
             orderTiming,
             preorderDate,
@@ -715,23 +736,19 @@ const Page = () => {
                 {/* Conditional fields based on delivery method */}
                 {deliveryMethod === "delivery" && (
                   <div className="form-group mb-3">
-                    <label htmlFor="zipcode" className="mb-2">
-                      Select Delivery Zipcode
+                    <label htmlFor="postcode" className="mb-2">
+                      Delivery Postcode <span className="text-danger">*</span>
                     </label>
-                    <select
-                      id="zipcode"
-                      className="form-select"
-                      value={selectedZipcode}
-                      onChange={(e) => setSelectedZipcode(e.target.value)}
-                      required
-                    >
-                      <option value="">Select Distance from CR0 7AE Zipcode</option>
-                      {availableZipcodes.map((zipcode) => (
-                        <option key={zipcode} value={zipcode}>
-                          {zipcode}
-                        </option>
-                      ))}
-                    </select>
+                    <PostcodeAutocomplete
+                      value={postcode}
+                      onChange={setPostcode}
+                      onValidationResult={handlePostcodeValidation}
+                      placeholder="Start typing your UK postcode (e.g., SW1A 1AA)"
+                      disabled={false}
+                    />
+                    <small className="text-muted mt-1 d-block">
+                      We deliver within 3km of our restaurant (CR0 7AE, Croydon)
+                    </small>
                   </div>
                 )}
 
@@ -825,7 +842,7 @@ const Page = () => {
                         !verified ||
                         !name ||
                         !address ||
-                        (deliveryMethod === "delivery" && !selectedZipcode) ||
+                        (deliveryMethod === "delivery" && (!postcode || !postcodeValidation.isValid)) ||
                         (deliveryMethod === "pickup" && orderTiming === "asap" && !pickupTime) ||
                         (orderTiming === "preorder" && (!preorderDate || !preorderTime)) ||
                         isSyncing ||
