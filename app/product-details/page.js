@@ -1673,8 +1673,8 @@ const page = () => {
 
   // Initialize ingredients and toppings when pizza data is loaded
   useEffect(() => {
-    if (pizza && allIngredients.length > 0 && allToppings.length > 0) {
-      // Map all ingredients with default quantities from pizza
+    if (pizza && allToppings.length > 0) {
+      // Map all ingredients with default quantities from pizza (if ingredients exist)
       const mappedIngredients = allIngredients.map((ing) => {
         const defaultIng = pizza.defaultIngredients?.find(
           (di) => di.ingredientId === ing.id
@@ -1701,7 +1701,7 @@ const page = () => {
           included: defaultTop ? defaultTop.include : false,
         };
       });
-
+      
       setIngredients(mappedIngredients);
       setToppings(mappedToppings);
 
@@ -1811,8 +1811,8 @@ const page = () => {
   };
 
   const updatedToppingQuantity = (index, operation) => {
-    setToppings((prevToppings) =>
-      prevToppings.map((topping, idx) =>
+    setToppings((prevToppings) => {
+      const newToppings = prevToppings.map((topping, idx) =>
         idx === index
           ? {
             ...topping,
@@ -1822,8 +1822,10 @@ const page = () => {
                 : Math.max(topping.quantity - 1, 0),
           }
           : topping
-      )
-    );
+      );
+      
+      return newToppings;
+    });
   };
 
   const handleIncrease = (event) => {
@@ -2102,132 +2104,130 @@ const page = () => {
                       </div>
                     </div>
                   )}
-                </div>
 
-                {/* Price Display */}
-                <div className="price-container mb-4">
-                  <h5 style={{ fontSize: "1.2rem", fontWeight: "600" }}>
-                    Total Price
-                  </h5>
-                  <span
-                    className="price"
-                    style={{
-                      fontSize: "2.2rem",
-                      fontWeight: "700",
-                      color: "#ff6b35",
-                      display: "block",
-                      marginTop: "5px",
-                    }}
-                  >
-                    £{getPrice().toFixed(2)}
-                  </span>
-                </div>
-
-                {/* Quantity Controls */}
-                <form className="add-to-cart mb-4">
-                  <div className="quantity-controls">
-                    <div
-                      className="custom-quantity"
+                  {/* Price Display */}
+                  <div className="price-container mb-4">
+                    <h5 style={{ fontSize: "1.2rem", fontWeight: "600" }}>
+                      Total Price
+                    </h5>
+                    <span
+                      className="price"
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "15px",
-                        marginBottom: "20px",
+                        fontSize: "2.2rem",
+                        fontWeight: "700",
+                        color: "#ff6b35",
+                        display: "block",
+                        marginTop: "5px",
                       }}
                     >
-                      <h5
-                        style={{
-                          margin: "0",
-                          fontSize: "1.2rem",
-                          fontWeight: "600",
-                        }}
-                      >
-                        Quantity
-                      </h5>
+                      £{getPrice().toFixed(2)}
+                    </span>
+                  </div>
+
+                  {/* Quantity Controls */}
+                  <form className="add-to-cart mb-4">
+                    <div className="quantity-controls">
                       <div
+                        className="custom-quantity"
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          border: "2px solid #eee",
-                          borderRadius: "8px",
-                          overflow: "hidden",
+                          gap: "15px",
+                          marginBottom: "20px",
                         }}
                       >
-                        <button
+                        <h5
                           style={{
-                            width: "40px",
-                            height: "40px",
-                            border: "none",
-                            background: "#f5f5f5",
+                            margin: "0",
                             fontSize: "1.2rem",
-                            cursor: quantity <= 1 ? "not-allowed" : "pointer",
-                            opacity: quantity <= 1 ? "0.5" : "1",
-                          }}
-                          disabled={quantity <= 1}
-                          onClick={handleDecrease}
-                        >
-                          -
-                        </button>
-                        <span
-                          style={{
-                            width: "40px",
-                            textAlign: "center",
-                            fontSize: "1.1rem",
                             fontWeight: "600",
                           }}
                         >
-                          {quantity}
-                        </span>
-                        <button
+                          Quantity
+                        </h5>
+                        <div
                           style={{
-                            width: "40px",
-                            height: "40px",
-                            border: "none",
-                            background: "#f5f5f5",
-                            fontSize: "1.2rem",
-                            cursor: quantity >= 10 ? "not-allowed" : "pointer",
-                            opacity: quantity >= 10 ? "0.5" : "1",
+                            display: "flex",
+                            alignItems: "center",
+                            border: "2px solid #eee",
+                            borderRadius: "8px",
+                            overflow: "hidden",
                           }}
-                          disabled={quantity >= 10}
-                          onClick={handleIncrease}
                         >
-                          +
-                        </button>
+                          <button
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              border: "none",
+                              background: "#f5f5f5",
+                              fontSize: "1.2rem",
+                              cursor: quantity <= 1 ? "not-allowed" : "pointer",
+                              opacity: quantity <= 1 ? "0.5" : "1",
+                            }}
+                            disabled={quantity <= 1}
+                            onClick={handleDecrease}
+                          >
+                            -
+                          </button>
+                          <span
+                            style={{
+                              width: "40px",
+                              textAlign: "center",
+                              fontSize: "1.1rem",
+                              fontWeight: "600",
+                            }}
+                          >
+                            {quantity}
+                          </span>
+                          <button
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              border: "none",
+                              background: "#f5f5f5",
+                              fontSize: "1.2rem",
+                              cursor: quantity >= 10 ? "not-allowed" : "pointer",
+                              opacity: quantity >= 10 ? "0.5" : "1",
+                            }}
+                            disabled={quantity >= 10}
+                            onClick={handleIncrease}
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Add to Cart Button */}
-                  <Link href="/cart">
-                    <button
-                      type="submit"
-                      className="theme-btn"
-                      onClick={handleAddToCart}
-                      style={{
-                        padding: "14px 30px",
-                        fontSize: "1.1rem",
-                        fontWeight: "600",
-                        borderRadius: "8px",
-                        background: "#ff6b35",
-                        border: "none",
-                        color: "#fff",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        transition: "all 0.3s ease",
-                        boxShadow: "0 4px 10px rgba(255, 107, 53, 0.3)",
-                      }}
-                    >
-                      Add to Cart
-                      <i className="far fa-arrow-alt-right" />
-                    </button>
-                  </Link>
-                </form>
+                    {/* Add to Cart Button */}
+                    <Link href="/cart">
+                      <button
+                        type="submit"
+                        className="theme-btn"
+                        onClick={handleAddToCart}
+                        style={{
+                          padding: "14px 30px",
+                          fontSize: "1.1rem",
+                          fontWeight: "600",
+                          borderRadius: "8px",
+                          background: "#ff6b35",
+                          border: "none",
+                          color: "#fff",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                          transition: "all 0.3s ease",
+                          boxShadow: "0 4px 10px rgba(255, 107, 53, 0.3)",
+                        }}
+                      >
+                        Add to Cart
+                        <i className="far fa-arrow-alt-right" />
+                      </button>
+                    </Link>
+                  </form>
 
-                {/* Toppings Section with Dynamic Pricing */}
-                {!isCombo && (
-                  <div className="toppings-section mb-4">
-                    {toppings.length > 0 && (
+                  {/* Toppings Section with Dynamic Pricing - MOVED HERE */}
+                  {!isCombo && toppings && toppings.length > 0 && (
+                    <div className="toppings-section mb-4">
                       <h5
                         className="mb-3"
                         style={{
@@ -2237,112 +2237,113 @@ const page = () => {
                       >
                         Toppings
                       </h5>
-                    )}
-                    <ul
-                      className="toppings-list"
-                      style={{ listStyle: "none", padding: "0" }}
-                    >
-                      {toppings.map((topping, index) => {
-                        const sizeMultiplier = getSizeMultiplier();
-                        const adjustedPrice = topping.price * sizeMultiplier;
+                      <ul
+                        className="toppings-list"
+                        style={{ listStyle: "none", padding: "0" }}
+                      >
+                        {toppings.map((topping, index) => {
+                          const sizeMultiplier = getSizeMultiplier();
+                          const adjustedPrice = topping.price * sizeMultiplier;
 
-                        return (
-                          <li
-                            key={index}
-                            className="topping-item"
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              padding: "12px 15px",
-                              margin: "8px 0",
-                              borderRadius: "8px",
-                              backgroundColor: "#f9f9f9",
-                              boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
-                            }}
-                          >
-                            <span style={{ fontWeight: "500" }}>
-                              {topping.name} - £{adjustedPrice.toFixed(1)}
-                              {/* {sizeMultiplier > 1 && (
-                                <span style={{ fontSize: "0.9em", color: "#666" }}>
-                                  {" "}(+{Math.round((sizeMultiplier - 1) * 100)}% for {size})
-                                </span>
-                              )} */}
-                            </span>
-                            <div
-                              className="topping-controls"
+                          return (
+                            <li
+                              key={`topping-${topping.id}-${index}`}
+                              className="topping-item"
                               style={{
                                 display: "flex",
+                                justifyContent: "space-between",
                                 alignItems: "center",
-                                gap: "10px",
+                                padding: "12px 15px",
+                                margin: "8px 0",
+                                borderRadius: "8px",
+                                backgroundColor: "#f9f9f9",
+                                boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
                               }}
                             >
+                              <span style={{ fontWeight: "500" }}>
+                                {topping.name} - £{adjustedPrice.toFixed(1)}
+                              </span>
                               <div
+                                className="topping-controls"
                                 style={{
                                   display: "flex",
                                   alignItems: "center",
-                                  border: "1px solid #ddd",
-                                  borderRadius: "6px",
-                                  overflow: "hidden",
+                                  gap: "10px",
                                 }}
                               >
-                                <button
+                                <div
                                   style={{
-                                    width: "30px",
-                                    height: "30px",
-                                    border: "none",
-                                    background: "#f0f0f0",
-                                    cursor:
-                                      topping.quantity <= 0
-                                        ? "not-allowed"
-                                        : "pointer",
-                                    opacity: topping.quantity <= 0 ? "0.5" : "1",
-                                  }}
-                                  disabled={topping.quantity <= 0}
-                                  onClick={() =>
-                                    updatedToppingQuantity(index, "subtract")
-                                  }
-                                >
-                                  -
-                                </button>
-                                <span
-                                  style={{
-                                    width: "30px",
-                                    textAlign: "center",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    border: "1px solid #ddd",
+                                    borderRadius: "6px",
+                                    overflow: "hidden",
                                   }}
                                 >
-                                  {topping.quantity}
-                                </span>
-                                <button
-                                  style={{
-                                    width: "30px",
-                                    height: "30px",
-                                    border: "none",
-                                    background: "#f0f0f0",
-                                    cursor:
-                                      topping.quantity >= maxQuantity
-                                        ? "not-allowed"
-                                        : "pointer",
-                                    opacity:
-                                      topping.quantity >= maxQuantity
-                                        ? "0.5"
-                                        : "1",
-                                  }}
-                                  disabled={topping.quantity >= maxQuantity}
-                                  onClick={() =>
-                                    updatedToppingQuantity(index, "add")
-                                  }
-                                >
-                                  +
-                                </button>
+                                  <button
+                                    type="button"
+                                    style={{
+                                      width: "30px",
+                                      height: "30px",
+                                      border: "none",
+                                      background: "#f0f0f0",
+                                      cursor:
+                                        topping.quantity <= 0
+                                          ? "not-allowed"
+                                          : "pointer",
+                                      opacity: topping.quantity <= 0 ? "0.5" : "1",
+                                    }}
+                                    disabled={topping.quantity <= 0}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      updatedToppingQuantity(index, "subtract");
+                                    }}
+                                  >
+                                    -
+                                  </button>
+                                  <span
+                                    style={{
+                                      width: "30px",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {topping.quantity}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    style={{
+                                      width: "30px",
+                                      height: "30px",
+                                      border: "none",
+                                      background: "#f0f0f0",
+                                      cursor:
+                                        topping.quantity >= maxQuantity
+                                          ? "not-allowed"
+                                          : "pointer",
+                                      opacity:
+                                        topping.quantity >= maxQuantity
+                                          ? "0.5"
+                                          : "1",
+                                    }}
+                                    disabled={topping.quantity >= maxQuantity}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      updatedToppingQuantity(index, "add");
+                                    }}
+                                  >
+                                    +
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

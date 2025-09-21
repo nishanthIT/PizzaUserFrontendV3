@@ -30,6 +30,7 @@ export const fetchPizzaById = async (pizzaId) => {
   try {
     const response = await axios.get(`${API_URL}/getPizzaById/${pizzaId}`);
     return response.data;
+
   } catch (error) {
     console.error("Error fetching pizza details:", error);
     throw error;
@@ -39,6 +40,7 @@ export const fetchPizzaById = async (pizzaId) => {
 export const fetchAllToppings = async () => {
   try {
     const response = await axios.get(`${API_URL}/getAllToppings`);
+    console.log('🔧 All toppings fetched:', response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching toppings:", error);

@@ -142,7 +142,7 @@ const MobileMenu = () => {
                 <div className="logo">
                   <Link href="/">
                     <img
-                      src="assets/images/logos/logo_circle.png"
+                      src="assets/images/logos/logo_circl.png"
                       alt="Logo"
                       title="Logo"
                        className="w-16 h-auto" 
@@ -158,7 +158,7 @@ const MobileMenu = () => {
                     <div className="mobile-logo">
                       <Link href="/">
                         <img
-                          src="assets/images/logos/logo_circle.png"
+                          src="assets/images/logos/logo_circl.png"
                           alt="Logo"
                           title="Logo"
                         />
@@ -594,9 +594,9 @@ const Header = () => {
       <div className="container-fluid clearfix ">
         <div className="header-inner rel d-flex align-items-center">
           <div className="logo-outer">
-            <div className="logo">
+              <div className="logo">
               <Link href="/">
-                <img src="assets/images/logos/logo_circle.png" alt="Logo" title="Logo"    style={{ width: '100px', height: 'auto' }} />
+                <img src={`assets/images/logos/${process.env.NEXT_PUBLIC_LOGO_NAME}`} alt="Logo" title="Logo" style={{ width: '100px', height: 'auto' }} />
               </Link>
             </div>
           </div>
@@ -604,9 +604,14 @@ const Header = () => {
             {/* Main Menu */}
             <nav className="main-menu navbar-expand-lg">
               <div className="navbar-header py-10">
-                <div className="mobile-logo">
+              <div className="mobile-logo">
                   <Link href="/">
-                    <img src="assets/images/logos/logo_circle.png" alt="Logo" title="Logo"  className="w-16 h-auto"  />
+                    <img
+                      src={`assets/images/logos/${process.env.NEXT_PUBLIC_LOGO_NAME}`}
+                      alt="Logo"
+                      title="Logo"
+                      className="w-16 h-auto"
+                    />
                   </Link>
                 </div>
                 {/* Toggle Button */}

@@ -58,9 +58,9 @@ const isShopOpen = () => {
 
   // Get environment variables with fallbacks
   const shopName = process.env.NEXT_PUBLIC_SHOP_NAME || "addiscombepizza";
-  const mondayToThursdayHours = process.env.NEXT_PUBLIC_MONDAY_TO_THURSDAY_HOURS || "17:00-22:30";
-  const fridayToSaturdayHours = process.env.NEXT_PUBLIC_FRIDAY_TO_SATURDAY_HOURS || "17:00-23:00";
-  const sundayHours = process.env.NEXT_PUBLIC_SUNDAY_HOURS || "17:00-22:30";
+  const mondayToThursdayHours = process.env.NEXT_PUBLIC_MONDAY_TO_THURSDAY_HOURS || "12:00-22:30";
+  const fridayToSaturdayHours = process.env.NEXT_PUBLIC_FRIDAY_TO_SATURDAY_HOURS || "12:00-23:00";
+  const sundayHours = process.env.NEXT_PUBLIC_SUNDAY_HOURS || "12:00-22:30";
 
   let todayHours;
   
@@ -509,7 +509,7 @@ const page = () => {
       {/* Headline Area end */}
 
       {/* Special Offer Area start */}
-      <section className="special-offer-area-two bgc-black pt-105 rpt-85 pb-130 rpb-100 rel z-1">
+      {/* <section className="special-offer-area-two bgc-black pt-105 rpt-85 pb-130 rpb-100 rel z-1">
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-5">
@@ -574,7 +574,7 @@ const page = () => {
             <img src="assets/images/shapes/hero-shape3.png" alt="Shape" />
           </div>
         </div>
-      </section>
+      </section> */}
       {/* Special Offer Area end */}
 
       {/* Testimonials Area start */}
