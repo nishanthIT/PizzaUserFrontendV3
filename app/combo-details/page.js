@@ -87,6 +87,7 @@ const page = () => {
           quantity: Number(quantity),
           isCombo: true,
           pizzas: combo?.pizzas || [],
+          comboItems: combo?.comboItems || [],
         })
       );
     } else {
@@ -385,7 +386,7 @@ console.log(combo);
                   </Link>
                 </form>
 
-                {combo?.pizzas && combo.pizzas.length > 0 && (
+                {combo && (combo.pizzas?.length > 0 || combo.comboItems?.length > 0) && (
                   <div className="combo-pizzas mt-4" style={{ 
                     background: '#f8f9fa', 
                     padding: '20px', 
@@ -401,23 +402,44 @@ console.log(combo);
                       Combo Includes:
                     </h4>
                     <ul className="list-unstyled" style={{ margin: '0' }}>
-                      {combo.pizzas.map((pizzaItem, index) => (
-                        <li key={index} style={{
-                          padding: '8px 0',
-                          borderBottom: index < combo.pizzas.length - 1 ? '1px solid #dee2e6' : 'none',
-                          fontSize: '1rem',
-                          color: '#555'
-                        }}>
-                          <strong>{pizzaItem.quantity}x</strong> {pizzaItem.pizza.name} 
-                          <span style={{ 
-                            color: '#ff6b35', 
-                            fontWeight: '600',
-                            marginLeft: '8px'
+                      {/* Show comboItems if they exist, otherwise show pizzas */}
+                      {combo.comboItems && combo.comboItems.length > 0 ? (
+                        // Display items from ComboItem relationship (newer format)
+                        combo.comboItems.map((comboItem, index) => (
+                          <li key={`combo-item-${index}`} style={{
+                            padding: '8px 0',
+                            borderBottom: index < combo.comboItems.length - 1 ? '1px solid #dee2e6' : 'none',
+                            fontSize: '1rem',
+                            color: '#555'
                           }}>
-                            ({mapSizeForDisplay(pizzaItem.size)})
-                          </span>
-                        </li>
-                      ))}
+                            <strong>{comboItem.quantity}x</strong>{' '}
+                            {comboItem.itemType === 'PIZZA' && comboItem.pizza 
+                              ? `${comboItem.pizza.name}${comboItem.size ? ` (${mapSizeForDisplay(comboItem.size)})` : ''}`
+                              : comboItem.otherItem 
+                                ? comboItem.otherItem.name 
+                                : 'Unknown Item'}
+                          </li>
+                        ))
+                      ) : (
+                        // Display pizzas from ComboPizza relationship (older format)
+                        combo.pizzas && combo.pizzas.map((pizzaItem, index) => (
+                          <li key={`pizza-${index}`} style={{
+                            padding: '8px 0',
+                            borderBottom: index < combo.pizzas.length - 1 ? '1px solid #dee2e6' : 'none',
+                            fontSize: '1rem',
+                            color: '#555'
+                          }}>
+                            <strong>{pizzaItem.quantity}x</strong> {pizzaItem.pizza.name} 
+                            <span style={{ 
+                              color: '#ff6b35', 
+                              fontWeight: '600',
+                              marginLeft: '8px'
+                            }}>
+                              ({mapSizeForDisplay(pizzaItem.size)})
+                            </span>
+                          </li>
+                        ))
+                      )}
                     </ul>
                   </div>
                 )}

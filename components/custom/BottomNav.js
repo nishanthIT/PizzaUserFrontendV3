@@ -73,7 +73,7 @@ export default function BottomNav() {
         <Link
           href="/login"
           className={`navbtn ${
-            isActive("/login") ? "b-nav-active" : "b-nav-inactive"
+            isActive("/user") ? "b-nav-active" : "b-nav-inactive"
           }`}
         >
           <User size={24} />

@@ -11260,7 +11260,9 @@ height: 4rem;
 }
 .b-nav-inactive{
   color: #9CA3AF; 
-}.btn-text{
+}
+
+.btn-text{
   margin-top: 0.25rem; 
 font-size: 0.75rem;
 line-height: 1rem; 
