@@ -610,6 +610,70 @@ const ComboStyleDetails = () => {
         </div>
       </div>
       
+      {/* Desktop Add to Cart Section */}
+      <div style={{
+        position: 'sticky',
+        bottom: '20px',
+        margin: '0 auto',
+        maxWidth: '800px',
+        padding: '0 20px',
+        display: 'none'
+      }}
+      className="desktop-add-to-cart">
+        <div style={{
+          background: 'white',
+          border: '2px solid #f0f0f0',
+          borderRadius: '12px',
+          padding: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{
+            display: 'flex',
+            gap: '20px',
+            alignItems: 'center',
+            color: '#333'
+          }}>
+            <span style={{ color: '#666', fontSize: '1rem' }}>Total Price</span>
+            <span style={{ 
+              color: '#333', 
+              fontSize: '1.5rem', 
+              fontWeight: '700' 
+            }}>
+              £{(parseFloat(price) * quantity).toFixed(2)}
+            </span>
+          </div>
+          <button
+            onClick={handleAddToCart}
+            style={{
+              background: '#ff6b35',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '12px 24px',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              minWidth: '140px'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.background = '#e55a2b';
+              e.target.style.transform = 'translateY(-1px)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.background = '#ff6b35';
+              e.target.style.transform = 'translateY(0)';
+            }}
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+      
+      {/* Mobile Fixed Button */}
       <FixedBtn 
         price={parseFloat(price) * quantity}
         quantity={quantity}
