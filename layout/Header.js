@@ -219,6 +219,9 @@ const MobileMenu = () => {
                             <Link href="menu-restaurant">Menu Restaurant</Link>
                           </li>
                           <li>
+                            <Link href="user-choice-menu">Meal Deals</Link>
+                          </li>
+                          <li>
                             <Link href="menu-pizza">Menu Pizza</Link>
                           </li>
                           <li>

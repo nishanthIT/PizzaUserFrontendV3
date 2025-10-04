@@ -14,6 +14,7 @@ import "react-toastify/dist/ReactToastify.css";
 import PizzaLoader from "@/components/pizzaLoader";
 import PostcodeAutocomplete from "@/components/PostcodeAutocomplete";
 import SimplePostcodeInput from "@/components/SimplePostcodeInput";
+import { calculateDeliveryCharge, validateDeliveryCharge } from "@/services/deliveryService";
 
 const Page = () => {
   const cartItems = useSelector(selectCartItems);
@@ -27,6 +28,9 @@ const Page = () => {
   const [postcodeValidation, setPostcodeValidation] = useState({ isValid: false, message: '' });
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
+  
+  // Add ref for delivery request cancellation
+  const deliveryAbortController = useRef(null);
   const [verified, setVerified] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false); // New state to track if user is authenticated
   const [isSyncing, setIsSyncing] = useState(null);
@@ -44,20 +48,143 @@ const Page = () => {
   const [preorderDate, setPreorderDate] = useState("");
   const [preorderTime, setPreorderTime] = useState("");
 
+  // NEW: Delivery charge states
+  const [deliveryCharge, setDeliveryCharge] = useState(0);
+  const [canDeliver, setCanDeliver] = useState(true);
+  const [deliveryPostcode, setDeliveryPostcode] = useState("");
+  const [deliveryZone, setDeliveryZone] = useState("");
+  const [deliveryDistance, setDeliveryDistance] = useState(0);
+
   // Handle postcode validation result
-  const handlePostcodeValidation = (validationResult) => {
+  const handlePostcodeValidation = async (validationResult) => {
     setPostcodeValidation(validationResult);
     if (validationResult.isValid) {
-      toast.success(`✅ ${validationResult.message}`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      // Update postcode state with validated postcode
+      const validatedPostcode = validationResult.postcode || postcode;
+      if (validatedPostcode !== postcode) {
+        setPostcode(validatedPostcode);
+      }
+      
+      // Remove the validation success toast - too frequent
+      
+      // Cancel any existing delivery request
+      if (deliveryAbortController.current) {
+        deliveryAbortController.current.abort();
+      }
+      
+      // Add a delay to ensure validation is complete and prevent rapid API calls
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Automatically calculate delivery charge when postcode is valid
+      let retries = 2;
+      let deliveryResult = null;
+      
+      while (retries > 0 && !deliveryResult) {
+        try {
+          const validatedPostcode = validationResult.postcode || postcode;
+          console.log('Calculating delivery charge for postcode:', validatedPostcode);
+          
+          // Create new abort controller for this request
+          deliveryAbortController.current = new AbortController();
+          
+          deliveryResult = await calculateDeliveryCharge(validatedPostcode, deliveryAbortController.current.signal);
+          break; // Success, exit retry loop
+          
+        } catch (error) {
+          // Ignore aborted requests
+          if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
+            return;
+          }
+          
+          console.warn(`Delivery calculation attempt failed (${3-retries}/2):`, error.message);
+          retries--;
+          
+          if (retries > 0) {
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          } else {
+            // Final retry failed
+            throw error;
+          }
+        }
+      }
+      
+      try {
+        
+        if (deliveryResult.success) {
+          const deliveryInfo = {
+            charge: deliveryResult.data.charge,
+            canDeliver: deliveryResult.data.canDeliver,
+            postcode: validatedPostcode,
+            zone: deliveryResult.data.zone,
+            distance: deliveryResult.data.distance
+          };
+          
+          handleDeliveryChargeChange(deliveryInfo);
+          
+          // Remove the delivery charge success toast - too frequent and annoying
+        } else {
+          // Handle delivery calculation failure
+          setDeliveryCharge(0);
+          setCanDeliver(false);
+          toast.error(`❌ Unable to calculate delivery charge. Please try a different postcode.`, {
+            position: "top-right",
+            autoClose: 5000,
+          });
+        }
+      } catch (error) {
+        // Ignore aborted requests
+        if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
+          return;
+        }
+        
+        console.error('Error calculating delivery charge:', error);
+        setDeliveryCharge(0);
+        setCanDeliver(false);
+        
+        // Show user-friendly error message
+        toast.error('❌ Unable to calculate delivery charge at the moment. Please try again.', {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      } finally {
+        deliveryAbortController.current = null;
+      }
     } else if (validationResult.message) {
-      toast.error(`❌ ${validationResult.message}`, {
+      // Reset delivery charge for invalid postcodes
+      setDeliveryCharge(0);
+      setCanDeliver(false);
+      setDeliveryPostcode("");
+      setDeliveryZone("");
+      setDeliveryDistance(0);
+      
+      // Only show error toast for serious validation issues, not for incomplete typing
+      if (validationResult.message && !validationResult.message.includes('typing')) {
+        toast.error(`❌ ${validationResult.message}`, {
+          position: "top-right",
+          autoClose: 4000,
+        });
+      }
+    }
+  };
+
+  // Handle delivery charge calculation result
+  const handleDeliveryChargeChange = (deliveryInfo) => {
+    console.log('Delivery charge updated:', deliveryInfo);
+    
+    setDeliveryCharge(deliveryInfo.charge || 0);
+    setCanDeliver(deliveryInfo.canDeliver || false);
+    setDeliveryPostcode(deliveryInfo.postcode || "");
+    setDeliveryZone(deliveryInfo.zone || "");
+    setDeliveryDistance(deliveryInfo.distance || 0);
+    
+    if (deliveryInfo.error) {
+      toast.error(`❌ ${deliveryInfo.error}`, {
         position: "top-right",
         autoClose: 5000,
       });
     }
+    // Remove the delivery success toast from handleDeliveryChargeChange - too frequent
   };
 
   const renderCount = useRef(0);
@@ -111,7 +238,8 @@ const Page = () => {
   }, []); // Run once on component mount
 
   // Shipping and tax calculations
-  const deliveryFee = deliveryMethod === "delivery" ? 3.95 : 0;
+  // Calculate totals with dynamic delivery charge
+  const deliveryFee = deliveryMethod === "delivery" ? deliveryCharge : 0;
   const taxRate = 0.08; // 8% tax
   const taxAmount = totalPrice;
   const finalTotal = totalPrice + deliveryFee;
@@ -305,6 +433,16 @@ const Page = () => {
       return;
     }
 
+    if (deliveryMethod === "delivery" && !canDeliver) {
+      toast.error("We cannot deliver to this postcode. Please choose collection instead.");
+      return;
+    }
+
+    if (deliveryMethod === "delivery" && deliveryCharge === 0) {
+      toast.error("Please calculate delivery charge first");
+      return;
+    }
+
     if (orderTiming === "preorder" && (!preorderDate || !preorderTime)) {
       toast.error("Please select preorder date and time");
       return;
@@ -312,6 +450,31 @@ const Page = () => {
 
     try {
       setIsProcessing(true);
+
+      // Validate delivery charge on server before proceeding
+      if (deliveryMethod === "delivery") {
+        console.log("Validating delivery charge on server...");
+        try {
+          const validationResponse = await validateDeliveryCharge(
+            address, 
+            deliveryPostcode, 
+            deliveryCharge
+          );
+          
+          if (!validationResponse.success || !validationResponse.data.isValid) {
+            toast.error("Delivery charge validation failed. Please recalculate delivery charge.");
+            setIsProcessing(false);
+            return;
+          }
+          
+          console.log("✅ Delivery charge validated successfully");
+        } catch (validationError) {
+          console.error("Delivery validation error:", validationError);
+          toast.error("Unable to validate delivery charge. Please try again.");
+          setIsProcessing(false);
+          return;
+        }
+      }
 
       console.log(
         "Cart items being sent:",
@@ -695,7 +858,7 @@ const Page = () => {
                               Home Delivery
                             </label>
                             <p className="mb-0 small text-muted">
-                              £3.95 delivery fee
+                              {deliveryCharge > 0 ? `£${deliveryCharge.toFixed(2)} delivery fee` : 'Enter postcode below to calculate delivery fee'}
                             </p>
                           </div>
                         </div>
@@ -747,8 +910,36 @@ const Page = () => {
                       disabled={false}
                     />
                     <small className="text-muted mt-1 d-block">
-                      We deliver within 3km of our restaurant (CR0 7AE, Croydon)
+                      We deliver up to 4 miles from our restaurant (274 Lower Addiscombe Road, CR0 7AE)
                     </small>
+                    
+                    {/* Delivery Charge Display */}
+                    {deliveryCharge > 0 && canDeliver && (
+                      <div className="alert alert-success mt-3 mb-0">
+                        <div className="d-flex justify-content-between align-items-center">
+                          <div>
+                            <strong>✅ Delivery Available</strong>
+                            <br />
+                            <small className="text-muted">
+                              {deliveryZone && `${deliveryZone} • `}
+                              {deliveryDistance > 0 && `${deliveryDistance.toFixed(1)} miles away`}
+                            </small>
+                          </div>
+                          <div className="text-end">
+                            <h5 className="mb-0 text-success">£{deliveryCharge.toFixed(2)}</h5>
+                            <small className="text-muted">Delivery Fee</small>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {deliveryCharge === 0 && !canDeliver && postcode && postcodeValidation.isValid === false && (
+                      <div className="alert alert-danger mt-3 mb-0">
+                        <strong>❌ Delivery Not Available</strong>
+                        <br />
+                        <small>We cannot deliver to this postcode. Please choose store pickup instead.</small>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -801,9 +992,9 @@ const Page = () => {
                           className="cart-item d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom"
                         >
                           <div>
-                            <h6 className="mb-1">{item.title}</h6>
+                            <h6 className="mb-1">{item.title|| item.name}</h6>
                             <p className="text-muted small mb-0">
-                              {item.size && `Size: ${item.size}`}
+                                 {(item.isMealDeal || (item.type === 'pizza' && item.toppings)) && item.size && `Size: ${item.size}`}
                               {item.quantity > 1 && ` × ${item.quantity}`}
                             </p>
                           </div>

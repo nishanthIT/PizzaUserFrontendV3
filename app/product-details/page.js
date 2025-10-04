@@ -1638,6 +1638,19 @@ const page = () => {
   const [quantity, setQuantity] = useState(1);
   const hasSetInitialPrice = useRef(false);
   const [isCombo, setIsCombo] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check for mobile screen size
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
   // Add pizza base state
   const [pizzaBase, setPizzaBase] = useState("Regular Crust");
 
@@ -1924,7 +1937,9 @@ const page = () => {
   return (
     <WellFoodLayout>
       {loading && <PizzaLoader />}
-      <section className="product-details pb-10 pt-130 rpt-100">
+      <section className="product-details pb-10" style={{ 
+        paddingTop: isMobile ? "80px" : "130px" 
+      }}>
         <div className="container">
           <div className="row">
             <div className="col-lg-6">
@@ -1946,9 +1961,9 @@ const page = () => {
                     src={`${API_URL}/images/pizza-${pizza.id}.png`}
                     alt={pizza.name}
                     style={{
-                      width: "40%",
+                      width: isMobile ? "50%" : "40%",
                       height: "auto",
-                      objectFit: "cover",
+                      objectFit: "contain",
                       borderRadius: "12px",
                     }}
                   />

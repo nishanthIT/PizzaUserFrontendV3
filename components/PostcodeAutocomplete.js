@@ -21,6 +21,10 @@ const PostcodeAutocomplete = ({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const debounceTimeout = useRef(null);
   const validationTimeout = useRef(null);
+  
+  // Add refs for request cancellation
+  const validationAbortController = useRef(null);
+  const searchAbortController = useRef(null);
 
   // UK Postcode validation regex
   const isValidUKPostcodeFormat = (postcode) => {
@@ -60,6 +64,11 @@ const PostcodeAutocomplete = ({
 
   // Validate postcode when user stops typing AND postcode looks complete
   const validatePostcode = async (postcode) => {
+    // Cancel any existing validation request
+    if (validationAbortController.current) {
+      validationAbortController.current.abort();
+    }
+    
     // Clear any existing validation
     setValidationMessage('');
     setValidationStatus('');
@@ -79,6 +88,9 @@ const PostcodeAutocomplete = ({
       return;
     }
 
+    // Create new abort controller for this request
+    validationAbortController.current = new AbortController();
+    
     setIsValidating(true);
     setValidationMessage('Checking delivery area...');
     setValidationStatus('warning');
@@ -87,7 +99,11 @@ const PostcodeAutocomplete = ({
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003';
       const response = await axios.post(
         `${apiUrl}/api/postcodes/validate`,
-        { postcode }
+        { postcode },
+        { 
+          signal: validationAbortController.current.signal,
+          timeout: 10000 // 10 second timeout
+        }
       );
 
       setValidationMessage(response.data.message);
@@ -102,6 +118,11 @@ const PostcodeAutocomplete = ({
         });
       }
     } catch (error) {
+      // Ignore aborted requests
+      if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
+        return;
+      }
+      
       const errorMessage = error.response?.data?.error || 'Unable to validate postcode';
       setValidationMessage(errorMessage);
       setValidationStatus('error');
@@ -115,6 +136,7 @@ const PostcodeAutocomplete = ({
       }
     } finally {
       setIsValidating(false);
+      validationAbortController.current = null;
     }
   };
 
@@ -160,15 +182,20 @@ const PostcodeAutocomplete = ({
 
   // Handle suggestion selection
   const handleSuggestionClick = (suggestion) => {
+    // Clear any pending timeouts
+    if (validationTimeout.current) {
+      clearTimeout(validationTimeout.current);
+    }
+    
     onChange(suggestion);
     setSuggestions([]);
     setShowSuggestions(false);
     setSelectedIndex(-1);
     
-    // Validate the selected postcode
-    setTimeout(() => {
+    // Validate the selected postcode with a longer delay to prevent rapid requests
+    validationTimeout.current = setTimeout(() => {
       validatePostcode(suggestion);
-    }, 100);
+    }, 500); // Increased delay for suggestion clicks
   };
 
   // Handle keyboard navigation

@@ -10,7 +10,7 @@ import {
   fetchAllCategories,
   fetchPizzasByCategory,
 } from "@/services/menuPizzaServices";
-import { CupSoda, Pizza, Dessert, Hamburger, UtensilsCrossed } from "lucide-react"; // Import Lucide icons
+import { CupSoda, Pizza, Dessert, Beef, UtensilsCrossed } from "lucide-react"; // Import Lucide icons
 import { API_URL } from "@/services/config";
 
 // Helper function to get icon based on category name
@@ -34,12 +34,12 @@ const getCategoryIcon = (categoryName) => {
   
   // Check for chicken - combo style items are here
   if (name?.includes('chicken')) {
-    return <Hamburger size={40} color="#ff0000" />;
+    return <Beef size={40} color="#ff0000" />;
   }
   
   // Check for burgers
   if (name?.includes('burger')) {
-    return <Hamburger size={40} color="#ff0000" />;
+    return <Beef size={40} color="#ff0000" />;
   }
   
   // Check for sides
@@ -73,6 +73,7 @@ const MenuPizzaPage = () => {
   const [pizzas, setPizzas] = useState([]);
   const [otherItems, setOtherItems] = useState([]);
   const [comboStyleItems, setComboStyleItems] = useState([]);
+  const [userChoiceItems, setUserChoiceItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingItems, setLoadingItems] = useState(false);
   const [error, setError] = useState(null);
@@ -169,7 +170,7 @@ const MenuPizzaPage = () => {
         // Test basic fetch first
         console.log("🧪 Testing API URL:", API_URL);
         
-        // Fetch pizzas and other items first
+        // Fetch pizzas, other items, and user choices
         const [pizzaResponse, otherItemsResponse] = await Promise.all([
           fetchPizzasByCategory(selectedCategory),
           fetch(
@@ -205,6 +206,43 @@ const MenuPizzaPage = () => {
 
         console.log("Final Combo Style Response:", comboStyleResponse);
 
+        // Fetch user choice items for this category
+        let userChoiceResponse = [];
+        try {
+          const userChoiceUrl = `${API_URL}/getUserChoices`;
+          console.log("🔍 User Choice URL:", userChoiceUrl);
+          console.log("🔍 Selected Category ID:", selectedCategory);
+          
+          const response = await fetch(userChoiceUrl);
+          console.log("🔍 User choice response status:", response.status);
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log("🔍 User choice response data:", data);
+            
+            // Public endpoint returns array directly, not wrapped in success object
+            if (Array.isArray(data)) {
+              console.log("🔍 All user choices:", data.map(choice => ({
+                id: choice.id,
+                name: choice.name,
+                displayCategoryId: choice.displayCategoryId,
+                isActive: choice.isActive
+              })));
+              
+              userChoiceResponse = data.filter(choice => {
+                const matches = choice.displayCategoryId === selectedCategory && choice.isActive;
+                console.log(`🔍 Choice "${choice.name}" - displayCategoryId: ${choice.displayCategoryId}, selectedCategory: ${selectedCategory}, isActive: ${choice.isActive}, matches: ${matches}`);
+                return matches;
+              });
+              console.log(`🔍 Filtered ${userChoiceResponse.length} user choices for category ${selectedCategory}`);
+            }
+          } else {
+            console.error("❌ User choice fetch failed with status:", response.status);
+          }
+        } catch (userChoiceError) {
+          console.error("❌ Error fetching user choice items:", userChoiceError);
+        }
+
         // Handle pizza data
         let pizzasData = [];
         if (pizzaResponse?.data) {
@@ -232,6 +270,15 @@ const MenuPizzaPage = () => {
         } else {
           console.log("❌ No combo style items found");
           setComboStyleItems([]);
+        }
+
+        // Handle user choice items data
+        if (Array.isArray(userChoiceResponse) && userChoiceResponse.length > 0) {
+          console.log(`✅ Found ${userChoiceResponse.length} user choice items`);
+          setUserChoiceItems(userChoiceResponse);
+        } else {
+          console.log("❌ No user choice items found");
+          setUserChoiceItems([]);
         }
       } catch (err) {
         console.error("Error loading items:", err);
@@ -322,6 +369,28 @@ const MenuPizzaPage = () => {
     }));
   };
 
+  // Format user choice items for menu
+  const formatUserChoiceItemsForMenu = (items) => {
+    if (!Array.isArray(items)) return [];
+
+    return items.map((item) => ({
+      id: item?.id || Math.random().toString(),
+      title: item?.name || "Unnamed Meal Deal",
+      price: parseFloat(item?.basePrice || 0),
+      decs: item?.description || "Customizable meal deal with your choice of items",
+      img: item?.imageUrl 
+        ? (item.imageUrl.startsWith('http') 
+            ? item.imageUrl 
+            : `${API_URL.replace('/api', '')}/uploads/${item.imageUrl}`)
+        : "/assets/images/food/pm-food1.png",
+      type: "userChoice",
+      isUserChoice: true,
+      userChoiceId: item?.id,
+      categoryConfigs: item?.categoryConfigs || [],
+      showPriceFrom: true, // Show "from" prefix like combo items
+    }));
+  };
+
   // Format Combo Style items for menu
   const formatComboStyleItemsForMenu = (items) => {
     if (!Array.isArray(items)) return [];
@@ -369,12 +438,28 @@ const MenuPizzaPage = () => {
       ? formatComboStyleItemsForMenu(comboStyleItems) 
       : [];
     
-    const items = [...categoryPizzas, ...categoryOtherItems, ...categoryComboStyleItems];
+    // Show user choice items in the selected category if they belong to it
+    const categoryUserChoiceItems = (category.id === selectedCategory) 
+      ? formatUserChoiceItemsForMenu(userChoiceItems) 
+      : [];
+    
+    console.log(`🔍 Category ${category.id} (${category.title}) - Selected: ${selectedCategory}:`, {
+      userChoiceItemsCount: userChoiceItems.length,
+      formattedUserChoiceItems: categoryUserChoiceItems.length,
+      categoryUserChoiceItems: categoryUserChoiceItems.map(item => ({
+        id: item.id,
+        title: item.title,
+        type: item.type
+      }))
+    });
+    
+    const items = [...categoryPizzas, ...categoryOtherItems, ...categoryComboStyleItems, ...categoryUserChoiceItems];
 
     console.log(`📋 Menu items for category ${category.id} (${category.title}):`, {
       pizzas: categoryPizzas.length,
       otherItems: categoryOtherItems.length,
       comboStyleItems: categoryComboStyleItems.length,
+      userChoiceItems: categoryUserChoiceItems.length,
       total: items.length,
       itemTitles: items.map(item => item.title)
     });

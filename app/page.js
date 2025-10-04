@@ -93,7 +93,9 @@ const isShopOpen = () => {
 
 const page = () => {
   const [combos, setCombos] = useState([]);
+  const [userChoices, setUserChoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userChoicesLoading, setUserChoicesLoading] = useState(true);
   const [pizzas, setPizzas] = useState([]);
   const [pizzaLoading, setPizzaLoading] = useState(true);
   const [shopStatus, setShopStatus] = useState({ isOpen: false, todayHours: "", shopName: "" });
@@ -122,6 +124,23 @@ const page = () => {
       }
     };
 
+    const fetchUserChoices = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/getActiveUserChoices`
+        );
+        const result = await response.json();
+        if (result.success) {
+          // Take only first 3 active user choices
+          setUserChoices(result.data.slice(0, 3));
+        }
+      } catch (error) {
+        console.error("Error fetching active user choices:", error);
+      } finally {
+        setUserChoicesLoading(false);
+      }
+    };
+
     const fetchPizzas = async () => {
       try {
         const response = await fetch(
@@ -138,6 +157,7 @@ const page = () => {
     };
 
     fetchCombos();
+    fetchUserChoices();
     fetchPizzas();
 
     // Cleanup interval on component unmount
@@ -267,6 +287,64 @@ const page = () => {
         </div>
       </div>
       {/* Combo Banner end */}
+
+      {/* User Choice Banner start */}
+      {userChoices.length > 0 && (
+        <div className="category-banner-area-two pb-85 rpb-65">
+          <div className="container-fluid">
+            <div className="section-title text-center mb-60">
+              <h2 style={{ color: '#575555ff', fontWeight: 'bold', textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>Meal Deals</h2>
+              <p>Create your perfect meal with our flexible combo options</p>
+            </div>
+            <div className="row row-cols-lg-3 row-cols-sm-2 row-cols-1 justify-content-center">
+              {userChoicesLoading ? (
+                <div className="col-12 text-center">
+                  <div className="spinner-border text-light" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              ) : (
+                userChoices.slice(0, 3).map((userChoice, index) => (
+                  <div
+                    key={userChoice.id}
+                    className="col"
+                    data-aos="fade-up"
+                    data-aos-delay={index * 50}
+                    data-aos-duration={1500}
+                    data-aos-offset={50}
+                  >
+                    <div
+                      className={`category-banner-item ${
+                        index === 1 ? "style-four" : "style-three"
+                      }`}
+                      style={{
+                        backgroundImage: userChoice.imageUrl 
+                          ? `url(${userChoice.imageUrl.startsWith('http') 
+                              ? userChoice.imageUrl 
+                              : `${API_URL}/images/${userChoice.imageUrl}`})`
+                          : `url(/assets/images/food/pm-food1.png)`,
+                      }}
+                    >
+                      <h3>{userChoice.name.toUpperCase()}</h3>
+                      {index === 1 && <span className="get-one">from £{parseFloat(userChoice.basePrice || 0).toFixed(2)}</span>}
+                      <Link
+                        href={{
+                          pathname: "/user-choice-details",
+                          query: { id: userChoice.id },
+                        }}
+                        className="theme-btn"
+                      >
+                        Customize now <i className="far fa-arrow-alt-right" />
+                      </Link>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* User Choice Banner end */}
 
    
 
@@ -448,8 +526,6 @@ const page = () => {
         </div>
       </section>
       {/* Popular Menu Area end */}
-
-     
 
       {/* Headline area start */}
       <div className="headline-area bgc-black pt-120 rpt-90 rel z-2">

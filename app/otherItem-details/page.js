@@ -22,6 +22,19 @@ const page = () => {
   const [quantity, setQuantity] = useState(1);
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedSauce, setSelectedSauce] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check for mobile screen size
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -164,7 +177,10 @@ const page = () => {
 
   return (
     <WellFoodLayout>
-      <div className="product-details-area pt-120 rpt-100 pb-85 rpb-65">
+      <div className="product-details-area" style={{ 
+        paddingTop: isMobile ? "60px" : "120px", 
+        paddingBottom: "85px" 
+      }}>
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-6">
@@ -172,6 +188,14 @@ const page = () => {
                 <img
                   src={`${API_URL}/images/other-${item.id}.png`}
                   alt={item?.name}
+                  style={{
+                    width: isMobile ? "60%" : "100%",
+                    height: "auto",
+                    objectFit: "contain",
+                    borderRadius: "15px",
+                    display: "block",
+                    margin: "0 auto"
+                  }}
                 />
               </div>
             </div>

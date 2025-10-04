@@ -14,6 +14,11 @@ const calculatePrice = (item) => {
     return item.price;
   }
 
+  if (item.type === "userChoice") {
+    // For user choice items, show base price
+    return item.price;
+  }
+
   // const ingredientCost = (item.ingredients || []).reduce(
   //   (sum, ingredient) =>
   //     ingredient.quantity > 0
@@ -35,9 +40,35 @@ const calculatePrice = (item) => {
 };
 
 const getItemLink = (item) => {
+  // Add debugging for all items
+  console.log("getItemLink called with item:", item);
+  
+  // Safety check for item
+  if (!item) {
+    console.error("getItemLink called with null/undefined item");
+    return "#";
+  }
+
   if (item.type === "comboStyle") {
     // For Combo Style items, go to the combo style menu with specific item ID
-    return `/combo-style-menu?itemId=${item.itemId || item.id}`;
+    const link = `/combo-style-menu?itemId=${item.itemId || item.id}`;
+    console.log("ComboStyle link:", link);
+    return link;
+  }
+  
+  if (item.type === "userChoice") {
+    // For UserChoice items, go to the user choice details page
+    const userChoiceId = item.userChoiceId || item.id;
+    console.log("UserChoice link generation:", { item, userChoiceId });
+    
+    if (!userChoiceId) {
+      console.error("No userChoiceId found for item:", item);
+      return "#"; // Fallback to prevent undefined href
+    }
+    
+    const link = `/user-choice-details?id=${userChoiceId}`;
+    console.log("UserChoice link:", link);
+    return link;
   }
   
   if (item.type === "other") {
@@ -52,10 +83,12 @@ const getItemLink = (item) => {
     
     if (isChickenItem) {
       // Redirect chicken items to combo style menu
-      return "/combo-style-menu";
+      const link = "/combo-style-menu";
+      console.log("Chicken item link:", link);
+      return link;
     }
     
-    return {
+    const otherLink = {
       pathname: "/otherItem-details",
       query: {
         id: item.id,
@@ -65,9 +98,12 @@ const getItemLink = (item) => {
         img: item.img,
       },
     };
+    console.log("Other item link:", otherLink);
+    return otherLink;
   }
 
-  return {
+  // Default case for regular pizza items
+  const defaultLink = {
     pathname: "/product-details",
     query: {
       id: item.id,
@@ -75,16 +111,37 @@ const getItemLink = (item) => {
       price: item.price,
       desc: item.decs,
       img: item.img,
-      ingredients: JSON.stringify(item.ingredients),
-      toppings: JSON.stringify(item.toppings),
+      ingredients: JSON.stringify(item.ingredients || []),
+      toppings: JSON.stringify(item.toppings || []),
     },
   };
+  console.log("Default item link:", defaultLink);
+  return defaultLink;
+};
+
+// Safe wrapper for getItemLink to ensure no undefined href
+const getSafeItemLink = (item) => {
+  try {
+    const link = getItemLink(item);
+    if (!link) {
+      console.error("getItemLink returned falsy value for item:", item);
+      return "#";
+    }
+    return link;
+  } catch (error) {
+    console.error("Error in getItemLink:", error, "Item:", item);
+    return "#";
+  }
 };
 
 const Item = ({ item }) => {
   const getImageSrc = () => {
     if (item.type === "comboStyle") {
       return `${API_URL}/images/${item.img}`;
+    }
+    if (item.type === "userChoice") {
+      // UserChoice items have their image already formatted
+      return item.img;
     }
     if (item.type === "other") {
       return `${API_URL}/images/other-${item.id}.png`;
@@ -94,7 +151,7 @@ const Item = ({ item }) => {
 
   const formatPrice = () => {
     const price = calculatePrice(item);
-    if (item.type === "comboStyle" && item.showPriceFrom) {
+    if ((item.type === "comboStyle" || item.type === "userChoice") && item.showPriceFrom) {
       return `from £${price}`;
     }
     return `£${price}`;
@@ -117,6 +174,11 @@ const Item = ({ item }) => {
         {item.type === "comboStyle" && (
           <small style={{ color: "#ff6b35", fontWeight: "600" }}>
             Multiple sizes available • Choice of sauce included
+          </small>
+        )}
+        {item.type === "userChoice" && (
+          <small style={{ color: "#ff6b35", fontWeight: "600" }}>
+            Customizable meal deal • Choose your favorites
           </small>
         )}
       </div>
@@ -233,7 +295,7 @@ const RestaurantMenu = ({
                       {menu.items.map(
                         (item, i) =>
                           i < Math.ceil(menu.items.length / 2) && (
-                            <Link key={item.id} href={getItemLink(item)}>
+                            <Link key={item.id} href={getSafeItemLink(item)}>
                               <Item item={item} />
                             </Link>
                           )
@@ -248,7 +310,7 @@ const RestaurantMenu = ({
                       {menu.items.map(
                         (item, i) =>
                           i >= Math.ceil(menu.items.length / 2) && (
-                            <Link key={item.id} href={getItemLink(item)}>
+                            <Link key={item.id} href={getSafeItemLink(item)}>
                               <Item item={item} />
                             </Link>
                           )

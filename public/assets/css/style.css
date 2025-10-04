@@ -11270,6 +11270,17 @@ line-height: 1rem;
   }
 }
 
+/* Desktop Add to Cart Section */
+.desktop-add-to-cart {
+  display: block !important; /* Show on desktop */
+}
+
+@media (max-width: 767px) {
+  .desktop-add-to-cart {
+    display: none !important; /* Hide on mobile */
+  }
+}
+
 .fixed-btn-flx {
   display: flex;
   justify-content: space-between;

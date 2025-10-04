@@ -31,9 +31,14 @@ import Link from "next/link";
 //   }
 
 
-export default function FixedBtn({ price, onAddToCart,name,link }) {
+export default function FixedBtn({ price, onAddToCart, name, link }) {
   console.log(link)
   console.log("btn")
+  
+  // Provide default values to prevent undefined href
+  const safeLink = link || "#";
+  const safeName = name || "Add to Cart";
+  
   return (
     <div className="fixed-btn-container">
       <div className="fixed-btn-flx">
@@ -44,9 +49,9 @@ export default function FixedBtn({ price, onAddToCart,name,link }) {
   £{Number(price || 0).toFixed(2)}
 </p>
         </div>
-        <Link href={link}>
+        <Link href={safeLink}>
         <button onClick={onAddToCart} className="fixed-btn">
-          {name}
+          {safeName}
         </button>
         
     </Link>
