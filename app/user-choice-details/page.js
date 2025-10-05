@@ -53,12 +53,16 @@ const UserChoiceDetailsContent = () => {
           const categoryItemsData = {};
           for (const config of userChoiceData.data.categoryConfigs) {
             try {
+              console.log(`🔧 Fetching items for category: ${config.categoryName} (${config.categoryId})`);
               const itemsData = await fetchCategoryItems(userChoiceId, config);
               if (itemsData.success) {
+                console.log(`🔧 Retrieved ${itemsData.data.length} items for ${config.categoryName}:`, itemsData.data);
                 categoryItemsData[config.categoryId] = itemsData.data;
+              } else {
+                console.log(`🔧 Failed to fetch items for ${config.categoryName}`);
               }
             } catch (err) {
-              console.error(`Error fetching items for category ${config.categoryId}:`, err);
+              console.error(`Error fetching items for category ${config.categoryId} (${config.categoryName}):`, err);
             }
           }
           setCategoryItems(categoryItemsData);
@@ -360,6 +364,7 @@ const UserChoiceDetailsContent = () => {
         {/* Category Selections */}
         {userChoice?.categoryConfigs.map((config) => {
           const items = categoryItems[config.categoryId] || [];
+          console.log(items)
           const selectedInCategory = selectedItems[config.categoryId] || [];
           
           return (
@@ -370,8 +375,7 @@ const UserChoiceDetailsContent = () => {
                 marginBottom: "15px",
                 color: '#333'
               }}>
-                Choose {config.itemCount} {config.type}
-                {config.itemCount > 1 ? 's' : ''}
+                Choose {config.itemCount} {config.categoryName ? config.categoryName.toLowerCase() : config.type + (config.itemCount > 1 ? 's' : '')}
                 {config.type === 'pizza' && config.pizzaSize && (
                   <span style={{ color: '#ff6b35', fontSize: '0.9rem', fontWeight: '500' }}>
                     {' '}({config.pizzaSize})

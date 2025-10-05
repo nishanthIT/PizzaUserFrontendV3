@@ -209,7 +209,7 @@ const MenuPizzaPage = () => {
         // Fetch user choice items for this category
         let userChoiceResponse = [];
         try {
-          const userChoiceUrl = `${API_URL}/getUserChoices`;
+          const userChoiceUrl = `${API_URL}/getUserChoices?showInactive=true`;
           console.log("🔍 User Choice URL:", userChoiceUrl);
           console.log("🔍 Selected Category ID:", selectedCategory);
           
@@ -230,7 +230,7 @@ const MenuPizzaPage = () => {
               })));
               
               userChoiceResponse = data.filter(choice => {
-                const matches = choice.displayCategoryId === selectedCategory && choice.isActive;
+                const matches = choice.displayCategoryId === selectedCategory;
                 console.log(`🔍 Choice "${choice.name}" - displayCategoryId: ${choice.displayCategoryId}, selectedCategory: ${selectedCategory}, isActive: ${choice.isActive}, matches: ${matches}`);
                 return matches;
               });

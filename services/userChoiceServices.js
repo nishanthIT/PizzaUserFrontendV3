@@ -27,7 +27,7 @@ export const fetchUserChoiceById = async (userChoiceId) => {
 
 export const fetchCategoryItems = async (userChoiceId, categoryConfig) => {
   try {
-    const response = await axios.get(`${API_URL}/getUserChoiceItems?userChoiceId=${userChoiceId}&categoryType=${categoryConfig.type}`);
+    const response = await axios.get(`${API_URL}/getUserChoiceItems?userChoiceId=${userChoiceId}&categoryType=${categoryConfig.type}&categoryId=${categoryConfig.categoryId}`);
     console.log("Fetched category items:", response.data);
     return { success: true, data: response.data };
   } catch (error) {
