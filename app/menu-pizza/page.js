@@ -381,7 +381,7 @@ const MenuPizzaPage = () => {
       img: item?.imageUrl 
         ? (item.imageUrl.startsWith('http') 
             ? item.imageUrl 
-            : `${API_URL.replace('/api', '')}/uploads/${item.imageUrl}`)
+            : `${API_URL}/images/${item.imageUrl}`)
         : "/assets/images/food/pm-food1.png",
       type: "userChoice",
       isUserChoice: true,

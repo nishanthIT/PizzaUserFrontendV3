@@ -13,9 +13,13 @@ export const fetchAllUserChoices = async () => {
   }
 };
 
-export const fetchUserChoiceById = async (userChoiceId) => {
+export const fetchUserChoiceById = async (userChoiceId, allowInactive = false) => {
   try {
-    const response = await axios.get(`${API_URL}/getUserChoice/${userChoiceId}`);
+    const url = allowInactive 
+      ? `${API_URL}/getUserChoice/${userChoiceId}?allowInactive=true`
+      : `${API_URL}/getUserChoice/${userChoiceId}`;
+    
+    const response = await axios.get(url);
     console.log("Fetched user choice details:", response.data);
     // Public endpoint returns data directly, wrap it for consistency
     return { success: true, data: response.data };
@@ -25,9 +29,10 @@ export const fetchUserChoiceById = async (userChoiceId) => {
   }
 };
 
-export const fetchCategoryItems = async (userChoiceId, categoryConfig) => {
+export const fetchCategoryItems = async (userChoiceId, categoryConfig, allowInactive = false) => {
   try {
-    const response = await axios.get(`${API_URL}/getUserChoiceItems?userChoiceId=${userChoiceId}&categoryType=${categoryConfig.type}&categoryId=${categoryConfig.categoryId}`);
+    const url = `${API_URL}/getUserChoiceItems?userChoiceId=${userChoiceId}&categoryType=${categoryConfig.type}&categoryId=${categoryConfig.categoryId}${allowInactive ? '&allowInactive=true' : ''}`;
+    const response = await axios.get(url);
     console.log("Fetched category items:", response.data);
     return { success: true, data: response.data };
   } catch (error) {

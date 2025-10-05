@@ -66,7 +66,8 @@ const getItemLink = (item) => {
       return "#"; // Fallback to prevent undefined href
     }
     
-    const link = `/user-choice-details?id=${userChoiceId}`;
+    // Add fromMenu=true parameter to allow access to inactive items
+    const link = `/user-choice-details?id=${userChoiceId}&fromMenu=true`;
     console.log("UserChoice link:", link);
     return link;
   }
@@ -140,8 +141,11 @@ const Item = ({ item }) => {
       return `${API_URL}/images/${item.img}`;
     }
     if (item.type === "userChoice") {
-      // UserChoice items have their image already formatted
-      return item.img;
+      // UserChoice items need proper API URL formatting
+      if (item.img && item.img.startsWith('http')) {
+        return item.img; // Already a full URL
+      }
+      return `${API_URL}/images/${item.img}`;
     }
     if (item.type === "other") {
       return `${API_URL}/images/other-${item.id}.png`;

@@ -24,6 +24,7 @@ const UserChoiceDetailsContent = () => {
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const userChoiceId = searchParams.get("id");
+  const fromMenu = searchParams.get("fromMenu"); // Check if coming from restaurant menu
 
   useEffect(() => {
     if (!userChoiceId) {
@@ -37,7 +38,9 @@ const UserChoiceDetailsContent = () => {
         setLoading(true);
         
         // Fetch user choice details
-        const userChoiceData = await fetchUserChoiceById(userChoiceId);
+        // Allow inactive items if coming from restaurant menu
+        const allowInactive = fromMenu === 'true';
+        const userChoiceData = await fetchUserChoiceById(userChoiceId, allowInactive);
         
         if (userChoiceData.success) {
           setUserChoice(userChoiceData.data);
@@ -54,7 +57,7 @@ const UserChoiceDetailsContent = () => {
           for (const config of userChoiceData.data.categoryConfigs) {
             try {
               console.log(`🔧 Fetching items for category: ${config.categoryName} (${config.categoryId})`);
-              const itemsData = await fetchCategoryItems(userChoiceId, config);
+              const itemsData = await fetchCategoryItems(userChoiceId, config, allowInactive);
               if (itemsData.success) {
                 console.log(`🔧 Retrieved ${itemsData.data.length} items for ${config.categoryName}:`, itemsData.data);
                 categoryItemsData[config.categoryId] = itemsData.data;
