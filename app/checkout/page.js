@@ -55,6 +55,9 @@ const Page = () => {
   const [deliveryZone, setDeliveryZone] = useState("");
   const [deliveryDistance, setDeliveryDistance] = useState(0);
 
+  // Customer notes state
+  const [customerNotes, setCustomerNotes] = useState("");
+
   // Handle postcode validation result
   const handlePostcodeValidation = async (validationResult) => {
     setPostcodeValidation(validationResult);
@@ -506,6 +509,7 @@ const Page = () => {
             orderTiming,
             preorderDate,
             preorderTime,
+            customerNotes, // Add customer notes to order data
           }),
         }
       );
@@ -609,6 +613,10 @@ const Page = () => {
           }
           .radio-custom {
             margin-right: 10px;
+          }
+          #customerNotes::placeholder {
+            opacity: 0.4 !important;
+            color: #999 !important;
           }
         `}</style>
         <div className="container">
@@ -969,6 +977,25 @@ const Page = () => {
                     </small>
                   </div>
                 )}
+
+                {/* Customer Notes - Optional */}
+                <div className="form-group mb-4">
+                  <label htmlFor="customerNotes" className="mb-2">
+                    Special Instructions <span className="text-muted">(Optional)</span>
+                  </label>
+                  <textarea
+                    id="customerNotes"
+                    className="form-control"
+                    placeholder="Any special requests or delivery instructions? (e.g., ring doorbell, leave at door, allergies, etc.)"
+                    value={customerNotes}
+                    onChange={(e) => setCustomerNotes(e.target.value)}
+                    rows={3}
+                    maxLength={500}
+                  />
+                  <small className="text-muted mt-1 d-block">
+                    {customerNotes.length}/500 characters
+                  </small>
+                </div>
               </div>
             </div>
 

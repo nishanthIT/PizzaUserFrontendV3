@@ -71,6 +71,40 @@ const getItemLink = (item) => {
     console.log("UserChoice link:", link);
     return link;
   }
+
+  if (item.type === "pizzaBuilder") {
+    // For Pizza Builder items, treat them as special pizzas and go to product-details
+    const pizzaBuilderDealId = item.pizzaBuilderDealId || item.id;
+    console.log("PizzaBuilder link generation:", { item, pizzaBuilderDealId });
+    
+    if (!pizzaBuilderDealId) {
+      console.error("No pizzaBuilderDealId found for item:", item);
+      return "#"; // Fallback to prevent undefined href
+    }
+    
+    // Build URL with selected base and sauce
+    let link = `/product-details?id=${pizzaBuilderDealId}&title=${encodeURIComponent(item.title || "Pizza Builder")}&price=${item.price}&desc=${encodeURIComponent(item.decs || "")}&img=${encodeURIComponent(item.img || "")}&type=pizzaBuilder`;
+    
+    // Add selected base and sauce if available
+    if (item.selectedBase) {
+      link += `&selectedBase=${encodeURIComponent(JSON.stringify(item.selectedBase))}`;
+    }
+    if (item.selectedSauce) {
+      link += `&selectedSauce=${encodeURIComponent(JSON.stringify(item.selectedSauce))}`;
+    }
+    
+    console.log("PizzaBuilder product-details link:", link);
+    return link;
+  }
+
+  if (item.type === "pizzaBuilderDeals") {
+    // For Pizza Builder Deals, go to pizza selection page with the deal ID and maxToppings
+    const dealId = item.dealData?.id || item.id;
+    const maxToppings = item.dealData?.maxToppings || item.maxToppings || 4;
+    const link = `/pizza-selection?dealId=${dealId}&maxToppings=${maxToppings}`;
+    console.log("Pizza Builder Deals link:", link, { dealId, maxToppings });
+    return link;
+  }
   
   if (item.type === "other") {
     // Check if this is a chicken item that should use combo style
@@ -114,6 +148,8 @@ const getItemLink = (item) => {
       img: item.img,
       ingredients: JSON.stringify(item.ingredients || []),
       toppings: JSON.stringify(item.toppings || []),
+      // Add fourToppingMode if this is from "Choose Your Toppings" section
+      ...(item.fourToppingMode && { fourToppingMode: "true" }),
     },
   };
   console.log("Default item link:", defaultLink);
@@ -133,6 +169,41 @@ const getSafeItemLink = (item) => {
     console.error("Error in getItemLink:", error, "Item:", item);
     return "#";
   }
+};
+
+// Helper function to get item image source for the new layout
+const getItemImageSrc = (item) => {
+  if (item.type === "comboStyle") {
+    return `${API_URL}/images/${item.img}`;
+  }
+  if (item.type === "userChoice") {
+    // UserChoice items need proper API URL formatting
+    if (item.img && item.img.startsWith('http')) {
+      return item.img; // Already a full URL
+    }
+    return `${API_URL}/images/${item.img}`;
+  }
+  if (item.type === "other") {
+    return `${API_URL}/images/other-${item.id}.png`;
+  }
+  if (item.type === "pizzaBuilderDeals") {
+    return item.img || "/assets/images/food/pm-food1.png";
+  }
+  return `${API_URL}/images/pizza-${item.id}.png`;
+};
+
+// Helper function to format item price for the new layout
+const formatItemPrice = (item) => {
+  // Special handling for Pizza Builder Deals - don't show price
+  if (item.type === "pizzaBuilderDeals" && !item.showPriceFrom) {
+    return ""; // No price display
+  }
+  
+  const price = calculatePrice(item);
+  if ((item.type === "comboStyle" || item.type === "userChoice" || item.type === "pizzaBuilder") && item.showPriceFrom) {
+    return `from £${price}`;
+  }
+  return `£${price}`;
 };
 
 const Item = ({ item }) => {
@@ -155,7 +226,7 @@ const Item = ({ item }) => {
 
   const formatPrice = () => {
     const price = calculatePrice(item);
-    if ((item.type === "comboStyle" || item.type === "userChoice") && item.showPriceFrom) {
+    if ((item.type === "comboStyle" || item.type === "userChoice" || item.type === "pizzaBuilder") && item.showPriceFrom) {
       return `from £${price}`;
     }
     return `£${price}`;
@@ -229,19 +300,24 @@ const RestaurantMenu = ({
 
   return (
     <section className="restaurant-menu-area pb-100 rpb-70 rel z-1">
-      <div className="container container-1050">
-        <div className="row justify-content-center">
-          <div className="col-xl-8 col-lg-9">
-            <div
-              className="section-title text-center mb-50"
-              data-aos="fade-up"
-              data-aos-duration={1500}
-              data-aos-offset={50}
-            >
-              <h2>Explore Our Delicious Menu</h2>
-            </div>
-          </div>
-        </div>
+      <style jsx>{`
+        .menu-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 1rem;
+          padding-top: 100px;
+        }
+        
+        @media (max-width: 768px) {
+          .menu-container {
+            padding-top: 80px;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+          }
+        }
+      `}</style>
+      <div className="menu-container">
+
 
         {error && (
           <div className="alert alert-danger text-center" role="alert">
@@ -289,37 +365,104 @@ const RestaurantMenu = ({
                     <p className="mt-3">Loading delicious items...</p>
                   </div>
                 ) : menu.items && menu.items.length > 0 ? (
-                  <div className="row gap-90">
-                    <div
-                      className="col-lg-6 pb-30"
-                      data-aos="fade-right"
-                      data-aos-duration={1500}
-                      data-aos-offset={50}
-                    >
-                      {menu.items.map(
-                        (item, i) =>
-                          i < Math.ceil(menu.items.length / 2) && (
-                            <Link key={item.id} href={getSafeItemLink(item)}>
-                              <Item item={item} />
-                            </Link>
-                          )
-                      )}
-                    </div>
-                    <div
-                      className="col-lg-6 pb-30"
-                      data-aos="fade-left"
-                      data-aos-duration={1500}
-                      data-aos-offset={50}
-                    >
-                      {menu.items.map(
-                        (item, i) =>
-                          i >= Math.ceil(menu.items.length / 2) && (
-                            <Link key={item.id} href={getSafeItemLink(item)}>
-                              <Item item={item} />
-                            </Link>
-                          )
-                      )}
-                    </div>
+                  <div style={{ 
+                    display: "grid", 
+                    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", 
+                    gap: "1rem",
+                    padding: "0 1rem",
+                    marginTop: "2rem"
+                  }}>
+                    {menu.items.map((item) => (
+                      <Link key={item.id} href={getSafeItemLink(item)} style={{ textDecoration: "none" }}>
+                        <div style={{
+                          display: "flex",
+                          alignItems: "center",
+                          padding: "1rem",
+                          backgroundColor: "white",
+                          borderRadius: "8px",
+                          border: "1px solid #e0e0e0",
+                          transition: "all 0.2s ease",
+                          cursor: "pointer",
+                          minHeight: "100px"
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.transform = "translateY(-2px)";
+                          e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.transform = "translateY(0)";
+                          e.currentTarget.style.boxShadow = "none";
+                        }}
+                        >
+                          {/* Item Image */}
+                          <div style={{ 
+                            flexShrink: 0,
+                            marginRight: "1rem"
+                          }}>
+                            <img
+                              src={getItemImageSrc(item)}
+                              alt={item.title}
+                              style={{ 
+                                width: "80px", 
+                                height: "80px", 
+                                borderRadius: "8px",
+                                objectFit: "cover"
+                              }}
+                              onError={(e) => {
+                                e.target.src = "/assets/images/food/pm-food1.png";
+                              }}
+                            />
+                          </div>
+
+                          {/* Item Details */}
+                          <div style={{ 
+                            flex: 1,
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center"
+                          }}>
+                            <h5 style={{ 
+                              margin: "0 0 0.25rem 0",
+                              fontSize: "1.1rem",
+                              fontWeight: "600",
+                              color: "#333",
+                              lineHeight: "1.3"
+                            }}>
+                              {item.title}
+                            </h5>
+                            {item.decs && (
+                              <p style={{
+                                margin: "0 0 0.5rem 0",
+                                fontSize: "0.9rem",
+                                color: "#666",
+                                lineHeight: "1.3"
+                              }}>
+                                {item.decs.length > 60 ? item.decs.substring(0, 60) + "..." : item.decs}
+                              </p>
+                            )}
+                            {formatItemPrice(item) && (
+                              <div style={{
+                                fontSize: "1.1rem",
+                                fontWeight: "700",
+                                color: "#ff6b35"
+                              }}>
+                                {formatItemPrice(item)}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Arrow Icon */}
+                          <div style={{ 
+                            flexShrink: 0,
+                            marginLeft: "1rem",
+                            color: "#999",
+                            fontSize: "1.2rem"
+                          }}>
+                            →
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                 ) : (
                   <div className="text-center py-5">

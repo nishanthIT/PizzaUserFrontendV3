@@ -71,9 +71,11 @@ const MenuPizzaPage = () => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [pizzas, setPizzas] = useState([]);
+  const [allPizzas, setAllPizzas] = useState([]); // For "Choose Your Toppings" section
   const [otherItems, setOtherItems] = useState([]);
   const [comboStyleItems, setComboStyleItems] = useState([]);
   const [userChoiceItems, setUserChoiceItems] = useState([]);
+  const [pizzaBuilderItems, setPizzaBuilderItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingItems, setLoadingItems] = useState(false);
   const [error, setError] = useState(null);
@@ -151,6 +153,26 @@ const MenuPizzaPage = () => {
       }
     };
     loadCategories();
+  }, []);
+
+  // Fetch all pizzas for "Choose Your Toppings" section
+  useEffect(() => {
+    const loadAllPizzas = async () => {
+      try {
+        console.log("🍕 Loading all pizzas for Choose Your Toppings section");
+        const response = await fetch(`${API_URL}/getAllPizzaList`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log("🍕 All pizzas loaded:", data);
+          if (data?.data) {
+            setAllPizzas(data.data);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading all pizzas:", error);
+      }
+    };
+    loadAllPizzas();
   }, []);
 
   // Fetch pizzas and other items when selectedCategory changes
@@ -280,6 +302,42 @@ const MenuPizzaPage = () => {
           console.log("❌ No user choice items found");
           setUserChoiceItems([]);
         }
+
+        // Fetch pizza builder items for this category
+        console.log("🚀 ABOUT TO FETCH PIZZA BUILDER ITEMS");
+        console.log("🚀 API_URL:", API_URL);
+        console.log("🚀 selectedCategory:", selectedCategory);
+        let pizzaBuilderResponse = [];
+        try {
+          const pizzaBuilderUrl = `${API_URL}/getPizzaBuilderDeals?categoryId=${selectedCategory}&showInactive=true`;
+          console.log("🔍 Pizza Builder URL:", pizzaBuilderUrl);
+          
+          const response = await fetch(pizzaBuilderUrl);
+          console.log("🔍 Pizza builder response status:", response.status);
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log("🔍 Pizza builder response data:", data);
+            
+            if (Array.isArray(data)) {
+              pizzaBuilderResponse = data.filter(deal => deal.displayCategoryId === selectedCategory);
+              console.log(`🔍 Filtered ${pizzaBuilderResponse.length} pizza builder deals for category ${selectedCategory}`);
+            }
+          } else {
+            console.error("❌ Pizza builder fetch failed with status:", response.status);
+          }
+        } catch (pizzaBuilderError) {
+          console.error("❌ Error fetching pizza builder items:", pizzaBuilderError);
+        }
+
+        // Handle pizza builder items data
+        if (Array.isArray(pizzaBuilderResponse) && pizzaBuilderResponse.length > 0) {
+          console.log(`✅ Found ${pizzaBuilderResponse.length} pizza builder items`);
+          setPizzaBuilderItems(pizzaBuilderResponse);
+        } else {
+          console.log("❌ No pizza builder items found");
+          setPizzaBuilderItems([]);
+        }
       } catch (err) {
         console.error("Error loading items:", err);
         setError("Failed to load items. Please try again later.");
@@ -391,6 +449,43 @@ const MenuPizzaPage = () => {
     }));
   };
 
+  // Format Pizza Builder items for menu - Show each deal individually
+  const formatPizzaBuilderItemsForMenu = (items) => {
+    if (!Array.isArray(items) || items.length === 0) return [];
+
+    // Return each Pizza Builder Deal as a separate menu item
+    return items.map((deal) => ({
+      id: deal.id,
+      title: deal.name, // Just the name, no price
+      price: "", // No price display
+      decs: deal.description || "Customize this pizza with your choice of toppings, base, and size",
+      img: deal.imageUrl || "/assets/images/food/pm-food1.png",
+      type: "pizzaBuilderDeals",
+      isPizzaBuilderDeals: true,
+      showPriceFrom: false, // Don't show price
+      dealData: deal // Include the full deal data for reference
+    }));
+  };
+
+  // Format all pizzas for "Choose Your Toppings" section
+  const formatAllPizzasForToppings = (allPizzas) => {
+    if (!Array.isArray(allPizzas)) return [];
+
+    return allPizzas.map((pizza) => {
+      const basePrice = getBasePrice(pizza.sizes);
+      return {
+        id: pizza.id,
+        title: pizza.name,
+        price: basePrice,
+        decs: `${pizza.description || 'Delicious pizza'} - Customize with up to 4 toppings`,
+        img: `${API_URL}/images/pizza-${pizza.id}.png`,
+        type: "pizza",
+        isPizza: true,
+        fourToppingMode: true, // Special flag to indicate 4-topping customization
+      };
+    });
+  };
+
   // Format Combo Style items for menu
   const formatComboStyleItemsForMenu = (items) => {
     if (!Array.isArray(items)) return [];
@@ -443,23 +538,36 @@ const MenuPizzaPage = () => {
       ? formatUserChoiceItemsForMenu(userChoiceItems) 
       : [];
     
+    // Show pizza builder items in the selected category if they belong to it
+    const categoryPizzaBuilderItems = (category.id === selectedCategory) 
+      ? formatPizzaBuilderItemsForMenu(pizzaBuilderItems) 
+      : [];
+    
     console.log(`🔍 Category ${category.id} (${category.title}) - Selected: ${selectedCategory}:`, {
       userChoiceItemsCount: userChoiceItems.length,
       formattedUserChoiceItems: categoryUserChoiceItems.length,
+      pizzaBuilderItemsCount: pizzaBuilderItems.length,
+      formattedPizzaBuilderItems: categoryPizzaBuilderItems.length,
       categoryUserChoiceItems: categoryUserChoiceItems.map(item => ({
+        id: item.id,
+        title: item.title,
+        type: item.type
+      })),
+      categoryPizzaBuilderItems: categoryPizzaBuilderItems.map(item => ({
         id: item.id,
         title: item.title,
         type: item.type
       }))
     });
     
-    const items = [...categoryPizzas, ...categoryOtherItems, ...categoryComboStyleItems, ...categoryUserChoiceItems];
+    const items = [...categoryPizzas, ...categoryOtherItems, ...categoryComboStyleItems, ...categoryUserChoiceItems, ...categoryPizzaBuilderItems];
 
     console.log(`📋 Menu items for category ${category.id} (${category.title}):`, {
       pizzas: categoryPizzas.length,
       otherItems: categoryOtherItems.length,
       comboStyleItems: categoryComboStyleItems.length,
       userChoiceItems: categoryUserChoiceItems.length,
+      pizzaBuilderItems: categoryPizzaBuilderItems.length,
       total: items.length,
       itemTitles: items.map(item => item.title)
     });
@@ -475,6 +583,7 @@ const MenuPizzaPage = () => {
       {(loading || loadingItems) && <PizzaLoader />}
       {/* <PageBanner pageTitle={"Menu pizza"} /> */}
       {/* <Headline /> */}
+      
       <RestaurantMenu
         menus={menuItems}
         loading={loading || loadingItems}

@@ -591,6 +591,7 @@
 
 // export default ComboStyleItemsMenu;
 
+
 "use client";
 import FixedBtn from "@/components/custom/FixedBtn";
 import WellFoodLayout from "@/layout/WellFoodLayout";
@@ -604,6 +605,7 @@ const ComboStyleItemsMenu = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [failedImages, setFailedImages] = useState(new Set());
   const searchParams = useSearchParams();
   const itemId = searchParams.get('itemId'); // Get itemId from URL
 
@@ -787,7 +789,9 @@ const ComboStyleItemsMenu = () => {
                     <div className="row align-items-center">
                       <div className="col-lg-4 text-center mb-4 mb-lg-0">
                         <img
-                          src={`${API_URL}/images/${item.imageUrl || 'default-combo.png'}`}
+                          src={failedImages.has(item.id) 
+                            ? `${API_URL}/images/default-combo.png` 
+                            : `${API_URL}/images/${item.imageUrl || 'default-combo.png'}`}
                           alt={item.name}
                           style={{
                             maxWidth: "100%",
@@ -796,7 +800,10 @@ const ComboStyleItemsMenu = () => {
                             borderRadius: "10px"
                           }}
                           onError={(e) => {
-                            e.target.src = `${API_URL}/images/default-combo.png`;
+                            if (!failedImages.has(item.id)) {
+                              setFailedImages(prev => new Set([...prev, item.id]));
+                              e.target.src = `${API_URL}/images/default-combo.png`;
+                            }
                           }}
                         />
                       </div>
@@ -834,135 +841,174 @@ const ComboStyleItemsMenu = () => {
                           </div>
                         </div>
 
-                        {/* Size Options */}
+                        {/* Size Options - Compact Mobile Layout */}
                         <div className="row">
                           {Object.entries(item.sizePricing || {}).map(([size, pricing]) => {
                             if (!size || !pricing) {
                               return null;
                             }
 
+                            const hasMealDeal = pricing.mealDealPrice;
                             const mealDealConfig = item.mealDealConfig?.[size];
                             const sidesCount = mealDealConfig?.sides?.count || 1;
                             const drinksCount = mealDealConfig?.drinks?.count || 1;
 
-                            const orderHref = `/combo-style-details?id=${encodeURIComponent(item.id)}&size=${encodeURIComponent(size)}&mealDeal=false`;
-                            const mealDealHref = `/combo-style-details?id=${encodeURIComponent(item.id)}&size=${encodeURIComponent(size)}&mealDeal=true`;
-
                             return (
-                              <div key={`${item.id}-${size}`} className="col-md-6 col-lg-3 mb-3">
-                                <div
-                                  style={{
-                                    border: "2px solid #f0f0f0",
-                                    borderRadius: "12px",
-                                    padding: "20px",
-                                    textAlign: "center",
-                                    transition: "all 0.3s ease",
-                                    height: "100%",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    justifyContent: "space-between"
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.borderColor = "#ff6b35";
-                                    e.currentTarget.style.transform = "translateY(-5px)";
-                                    e.currentTarget.style.boxShadow = "0 10px 25px rgba(255, 107, 53, 0.15)";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.borderColor = "#f0f0f0";
-                                    e.currentTarget.style.transform = "translateY(0)";
-                                    e.currentTarget.style.boxShadow = "none";
-                                  }}
-                                >
-                                  <div>
-                                    <h4 style={{ 
-                                      fontSize: "1.3rem", 
+                              <div key={`size-${item.id}-${size}`} className="col-12 col-md-6 mb-3">
+                                <div style={{
+                                  border: "1px solid #e0e0e0",
+                                  borderRadius: "8px",
+                                  padding: "12px",
+                                  background: "#fff",
+                                  boxShadow: "0 1px 4px rgba(0,0,0,0.05)"
+                                }}>
+                                  {/* Size Header */}
+                                  <div style={{ 
+                                    textAlign: "center", 
+                                    marginBottom: "12px",
+                                    paddingBottom: "8px",
+                                    borderBottom: "1px solid #f0f0f0"
+                                  }}>
+                                    <h5 style={{ 
+                                      fontSize: "1.1rem", 
                                       fontWeight: "600", 
-                                      marginBottom: "10px", 
+                                      margin: "0", 
                                       color: "#333",
                                       textTransform: "capitalize"
                                     }}>
                                       {size === "wings" ? "8 Wings" : size}
-                                    </h4>
-                                    
-                                    <div style={{ marginBottom: "20px" }}>
-                                      <div style={{ marginBottom: "8px" }}>
-                                        <span style={{ fontSize: "0.9rem", color: "#666" }}>On its own</span>
-                                        <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#333" }}>
-                                          £{parseFloat(pricing.basePrice || 0).toFixed(2)}
-                                        </div>
-                                      </div>
-                                      
-                                      {pricing.mealDealPrice && (
-                                        <div style={{ 
-                                          background: "#fff5f2", 
-                                          padding: "10px", 
-                                          borderRadius: "8px",
-                                          border: "1px solid #ff6b35"
-                                        }}>
-                                          <span style={{ fontSize: "0.85rem", color: "#ff6b35", fontWeight: "600" }}>
-                                            🌟 Meal Deal - Best Value!
-                                          </span>
-                                          <div style={{ fontSize: "1.3rem", fontWeight: "700", color: "#ff6b35" }}>
-                                            £{parseFloat(pricing.mealDealPrice).toFixed(2)}
-                                          </div>
-                                          <div style={{ fontSize: "0.8rem", color: "#666", marginTop: "5px" }}>
-                                            with {sidesCount} side{sidesCount > 1 ? 's' : ''} and {drinksCount} drink{drinksCount > 1 ? 's' : ''}
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
+                                    </h5>
                                   </div>
 
-                                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                                    <Link href={orderHref}>
-                                      <button
+                                  {/* Options Container */}
+                                  <div style={{ 
+                                    display: "flex", 
+                                    flexDirection: hasMealDeal ? "column" : "row",
+                                    gap: "8px"
+                                  }}>
+                                    {/* Regular Order Option */}
+                                    <Link 
+                                      href={`/combo-style-details?id=${encodeURIComponent(item.id)}&size=${encodeURIComponent(size)}&mealDeal=false`} 
+                                      style={{ textDecoration: "none", color: "inherit", flex: "1" }}
+                                    >
+                                      <div
                                         style={{
-                                          width: "100%",
-                                          padding: "12px 16px",
-                                          fontSize: "1rem",
-                                          fontWeight: "600",
-                                          borderRadius: "8px",
-                                          background: "#333",
-                                          border: "none",
-                                          color: "#fff",
-                                          transition: "all 0.3s ease",
-                                          cursor: "pointer"
+                                          border: "1px solid #ddd",
+                                          borderRadius: "6px",
+                                          padding: "10px",
+                                          textAlign: "center",
+                                          transition: "all 0.2s ease",
+                                          cursor: "pointer",
+                                          background: "#fff",
+                                          minHeight: "70px",
+                                          display: "flex",
+                                          flexDirection: "column",
+                                          justifyContent: "center"
                                         }}
                                         onMouseEnter={(e) => {
-                                          e.target.style.background = "#555";
+                                          e.currentTarget.style.borderColor = "#333";
+                                          e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
                                         }}
                                         onMouseLeave={(e) => {
-                                          e.target.style.background = "#333";
+                                          e.currentTarget.style.borderColor = "#ddd";
+                                          e.currentTarget.style.boxShadow = "none";
                                         }}
                                       >
-                                        Order
-                                      </button>
+                                        <div style={{ marginBottom: "4px" }}>
+                                          <span style={{ 
+                                            fontSize: "0.75rem", 
+                                            color: "#666",
+                                            fontWeight: "500"
+                                          }}>
+                                            Regular
+                                          </span>
+                                        </div>
+                                        <div style={{ 
+                                          fontSize: "1.3rem", 
+                                          fontWeight: "700", 
+                                          color: "#333",
+                                          marginBottom: "2px"
+                                        }}>
+                                          £{parseFloat(pricing.basePrice || 0).toFixed(2)}
+                                        </div>
+                                        <div style={{ 
+                                          fontSize: "0.7rem", 
+                                          color: "#666"
+                                        }}>
+                                          Item + sauce
+                                        </div>
+                                      </div>
                                     </Link>
-                                    
-                                    {pricing.mealDealPrice && (
-                                      <Link href={mealDealHref}>
-                                        <button
+
+                                    {/* Meal Deal Option */}
+                                    {hasMealDeal && (
+                                      <Link 
+                                        href={`/combo-style-details?id=${encodeURIComponent(item.id)}&size=${encodeURIComponent(size)}&mealDeal=true`} 
+                                        style={{ textDecoration: "none", color: "inherit", flex: "1" }}
+                                      >
+                                        <div
                                           style={{
-                                            width: "100%",
-                                            padding: "12px 16px",
-                                            fontSize: "1rem",
-                                            fontWeight: "600",
-                                            borderRadius: "8px",
-                                            background: "#ff6b35",
-                                            border: "none",
-                                            color: "#fff",
-                                            transition: "all 0.3s ease",
-                                            cursor: "pointer"
+                                            border: "1px solid #ff6b35",
+                                            borderRadius: "6px",
+                                            padding: "10px",
+                                            textAlign: "center",
+                                            transition: "all 0.2s ease",
+                                            cursor: "pointer",
+                                            background: "#fff8f5",
+                                            position: "relative",
+                                            minHeight: "70px",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            justifyContent: "center"
                                           }}
                                           onMouseEnter={(e) => {
-                                            e.target.style.background = "#e55a2b";
+                                            e.currentTarget.style.borderColor = "#e55a2b";
+                                            e.currentTarget.style.boxShadow = "0 2px 8px rgba(255, 107, 53, 0.15)";
                                           }}
                                           onMouseLeave={(e) => {
-                                            e.target.style.background = "#ff6b35";
+                                            e.currentTarget.style.borderColor = "#ff6b35";
+                                            e.currentTarget.style.boxShadow = "none";
                                           }}
                                         >
-                                          Meal Deal
-                                        </button>
+                                          {/* Save Badge */}
+                                          <div style={{
+                                            position: "absolute",
+                                            top: "-6px",
+                                            right: "6px",
+                                            background: "#ff6b35",
+                                            color: "#fff",
+                                            padding: "2px 6px",
+                                            borderRadius: "8px",
+                                            fontSize: "0.6rem",
+                                            fontWeight: "600"
+                                          }}>
+                                            SAVE
+                                          </div>
+
+                                          <div style={{ marginBottom: "4px" }}>
+                                            <span style={{ 
+                                              fontSize: "0.75rem", 
+                                              color: "#ff6b35",
+                                              fontWeight: "600"
+                                            }}>
+                                              Meal Deal
+                                            </span>
+                                          </div>
+                                          <div style={{ 
+                                            fontSize: "1.3rem", 
+                                            fontWeight: "700", 
+                                            color: "#ff6b35",
+                                            marginBottom: "2px"
+                                          }}>
+                                            £{parseFloat(pricing.mealDealPrice).toFixed(2)}
+                                          </div>
+                                          <div style={{ 
+                                            fontSize: "0.65rem", 
+                                            color: "#666"
+                                          }}>
+                                            + {sidesCount} side + {drinksCount} drink
+                                          </div>
+                                        </div>
                                       </Link>
                                     )}
                                   </div>
