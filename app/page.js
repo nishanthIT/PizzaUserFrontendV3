@@ -212,129 +212,160 @@ const page = () => {
             data-aos-duration={1500}
             data-aos-offset={50}
           >
-            <span className="sub-title">Love at first bite.</span>
-            <div className="opening-hours-status" style={{ 
-              color: 'rgba(255, 255, 255, 0.8)', 
-              fontSize: '14px', 
-              marginTop: '10px',
-              marginBottom: '20px'
-            }}>
-              <div>
-                <span id="shop-status" style={{ 
-                  fontWeight: 'bold',
-                  color: shopStatus.isOpen ? '#28a745' : '#dc3545'
-                }}>
-                  {shopStatus.isOpen ? 'OPEN' : 'CLOSED'}
-                </span>
-                {' '}• Today: {shopStatus.todayHours}
-              </div>
-            </div>
+            {/* 1. Shop Status - Very top, small text, no space */}
+           <div className="opening-hours-status" style={{ 
+  color: 'rgba(255, 255, 255, 0.9)', 
+  fontSize: 'clamp(10px, 2vw, 14px)', // Responsive font size: 10px mobile, 14px desktop
+  marginTop: '-90px',
+  marginBottom: '0px',
+  fontWeight: '200',
+  position: 'absolute',
+  top: '10px',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  zIndex: 10
+}}>
+  <span style={{ 
+    fontWeight: 'bold',
+    color: shopStatus.isOpen ? '#28a745' : '#dc3545',
+    fontSize: 'clamp(12px, 2.5vw, 16px)' // Responsive: 12px mobile, 16px desktop for OPEN/CLOSED
+  }}>
+    {shopStatus.isOpen ? 'OPEN' : 'CLOSED'}
+  </span>
+  <span style={{ margin: '0 5px', color: '#fff' }}>•</span>
+  <span>Today: {shopStatus.todayHours}</span>
+</div>
             
-            {/* Review Images Section */}
+            {/* 2. Love at first bite - Second Line */}
+            <span className="sub-title" style={{ 
+              display: 'block',
+              marginBottom: '15px'
+            }}>Love at first bite.</span>
+            
+            {/* 3. Shop Name - Third Line */}
+     
+<style jsx>{`
+  .shop-name-heading {
+    margin-bottom: -90px;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  }
+  
+  @media (max-width: 768px) {
+    .shop-name-heading {
+      margin-bottom: -30px;
+    }
+  }
+`}</style>
+
+<h1 className="shop-name-heading">
+  {shopStatus.shopName}
+</h1>
+            
+            {/* 4. Pizza Image - On its own line */}
+            <div style={{ display: 'block', textAlign: 'center', marginBottom: '5px' }}>
+              <img
+                className="custom-hero-pizza"
+                src="assets/images/hero/pizza-2-min.png"
+                alt="Hero"
+                style={{
+                  maxHeight: '350px',
+                  width: 'auto',
+                  display: 'block',
+                  margin: '0 auto'
+                }}
+              />
+            </div>
+
+            {/* 5. Order Now Button - Below pizza image */}
+           
+<style jsx>{`
+  .order-button-container {
+    display: block;
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  @media (max-width: 768px) {
+    .order-button-container {
+      margin-top: 20px;
+    }
+  }
+`}</style>
+
+<div className="order-button-container">
+  <Link href="menu-pizza" className="theme-btn" style={{
+    display: 'inline-block'
+  }}>
+    O R D E R - N O W <i className="far fa-arrow-alt-right" />
+  </Link>
+</div>
+
+            {/* 6. Review Images Section */}
             <style jsx>{`
-              .review-desktop { display: flex; justify-content: center; align-items: center; gap: 25px; }
-              .review-mobile { display: none; }
+              .review-compact {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 15px;
+                margin: 20px 0;
+                flex-wrap: wrap;
+              }
+              .review-item {
+                text-align: center;
+                max-width: auto;
+              }
+              .review-item img {
+                height: 60px;
+                width: auto;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                margin-bottom: 5px;
+              }
+              .review-text {
+                font-size: 10px;
+                color: rgba(255,255,255,0.8);
+                line-height: 1.2;
+              }
               @media (max-width: 768px) {
-                .review-desktop { display: none; }
-                .review-mobile { display: block; }
+                .review-compact {
+                  gap: 10px;
+                  margin: 15px 0;
+                }
+                .review-item img {
+                  height: 45px;
+                }
+                .review-text {
+                  font-size: 9px;
+                }
               }
             `}</style>
-            <div className="review-images" style={{ 
-              marginTop: '15px',
-              marginBottom: '15px'
-            }}>
-              {/* Desktop View - All in one line with rating.jpg center */}
-              <div className="review-desktop">
+            
+            <div className="review-compact">
+              <div className="review-item">
+                <img
+                  src="assets/images/review/rating.jpg"
+                  alt="Google Rating"
+                />
+                <div className="review-text">Customer Reviews</div>
+              </div>
+              
+              <div className="review-item">
                 <img
                   src="assets/images/review/hygen_ratting.png"
                   alt="Hygiene Rating"
-                  style={{ 
-                    height: '110px',
-                    width: 'auto',
-                    borderRadius: '10px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                  }}
                 />
-                <img
-                  src="assets/images/review/rating.jpg"
-                  alt="Rating"
-                  style={{ 
-                    height: '110px',
-                    width: 'auto',
-                    borderRadius: '10px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                  }}
-                />
+                <div className="review-text">Food Hygiene</div>
+              </div>
+              
+              <div className="review-item">
                 <img
                   src="assets/images/review/MarysMeals.jpg"
                   alt="Mary's Meals"
-                  style={{ 
-                    height: '110px',
-                    width: 'auto',
-                    borderRadius: '10px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                  }}
                 />
-              </div>
-              
-              {/* Mobile View - rating.jpg on separate line */}
-              <div className="review-mobile">
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  gap: '15px',
-                  marginBottom: '15px'
-                }}>
-                  <img
-                    src="assets/images/review/hygen_ratting.png"
-                    alt="Hygiene Rating"
-                    style={{ 
-                      height: '70px',
-                      width: 'auto',
-                      borderRadius: '10px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                    }}
-                  />
-                  <img
-                    src="assets/images/review/MarysMeals.jpg"
-                    alt="Mary's Meals"
-                    style={{ 
-                      height: '70px',
-                      width: 'auto',
-                      borderRadius: '10px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                    }}
-                  />
-                </div>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'center'
-                }}>
-                  <img
-                    src="assets/images/review/rating.jpg"
-                    alt="Rating"
-                    style={{ 
-                      height: '70px',
-                      width: 'auto',
-                      borderRadius: '10px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                    }}
-                  />
-                </div>
+                <div className="review-text">We donate to Mary's Meals</div>
               </div>
             </div>
-            
-            <h1>{shopStatus.shopName}</h1>
-            
-            <img
-              className="custom-hero-pizza"
-              src="assets/images/hero/pizza-2-min.png"
-              alt="Hero"
-            />
-
-            <Link href="menu-pizza" className="theme-btn order-button">
-              O R D E R - N O W <i className="far fa-arrow-alt-right" />
-            </Link>
           </div>
         </div>
 {/* 
