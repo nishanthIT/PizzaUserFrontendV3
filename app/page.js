@@ -303,12 +303,19 @@ const page = () => {
 
             {/* 6. Review Images Section */}
             <style jsx>{`
+              .review-section {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 30px;
+                margin: 20px 0;
+                flex-wrap: wrap;
+              }
               .review-compact {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                gap: 15px;
-                margin: 20px 0;
+                gap: 20px;
                 flex-wrap: wrap;
               }
               .review-item {
@@ -327,6 +334,43 @@ const page = () => {
                 color: rgba(255,255,255,0.8);
                 line-height: 1.2;
               }
+              .marys-meals-card {
+                background-color: rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 15px;
+                max-width: 280px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+              }
+              .donation-text {
+                flex: 1;
+                color: white;
+                font-size: 12px;
+                line-height: 1.3;
+                font-weight: 500;
+              }
+              .marys-logo {
+                flex-shrink: 0;
+              }
+              @media (max-width: 1024px) {
+                .review-section {
+                  flex-direction: column;
+                  gap: 20px;
+                }
+                .marys-meals-card {
+                  max-width: 400px;
+                  padding: 15px;
+                  gap: 15px;
+                }
+                .donation-text {
+                  font-size: 14px;
+                  line-height: 1.4;
+                }
+              }
               @media (max-width: 768px) {
                 .review-compact {
                   gap: 10px;
@@ -338,32 +382,53 @@ const page = () => {
                 .review-text {
                   font-size: 9px;
                 }
+                .marys-meals-card {
+                  max-width: 320px;
+                  padding: 12px;
+                  gap: 12px;
+                }
+                .donation-text {
+                  font-size: 12px;
+                }
               }
             `}</style>
             
-            <div className="review-compact">
-              <div className="review-item">
-                <img
-                  src="assets/images/review/rating.jpg"
-                  alt="Google Rating"
-                />
-                <div className="review-text">Customer Reviews</div>
+            <div className="review-section">
+              <div className="review-compact">
+                <div className="review-item">
+                  <img
+                    src="assets/images/review/rating.jpg"
+                    alt="Google Rating"
+                  />
+                  <div className="review-text">Customer Reviews</div>
+                </div>
+                
+                <div className="review-item">
+                  <img
+                    src="assets/images/review/hygen_ratting.png"
+                    alt="Hygiene Rating"
+                  />
+                  <div className="review-text">Food Hygiene</div>
+                </div>
               </div>
-              
-              <div className="review-item">
-                <img
-                  src="assets/images/review/hygen_ratting.png"
-                  alt="Hygiene Rating"
-                />
-                <div className="review-text">Food Hygiene</div>
-              </div>
-              
-              <div className="review-item">
-                <img
-                  src="assets/images/review/MarysMeals.jpg"
-                  alt="Mary's Meals"
-                />
-                <div className="review-text">We donate to Mary's Meals</div>
+
+              {/* Mary's Meals Card */}
+              <div className="marys-meals-card">
+                <div className="donation-text">
+                  We donate a free meal to a poor child for every order you place
+                </div>
+                <div className="marys-logo">
+                  <img
+                    src="assets/images/review/MarysMeals.jpg"
+                    alt="Mary's Meals"
+                    style={{
+                      height: '50px',
+                      width: 'auto',
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>
