@@ -98,6 +98,8 @@ const page = () => {
   const [userChoicesLoading, setUserChoicesLoading] = useState(true);
   const [pizzas, setPizzas] = useState([]);
   const [pizzaLoading, setPizzaLoading] = useState(true);
+  const [specialOffer, setSpecialOffer] = useState(null);
+  const [specialOfferLoading, setSpecialOfferLoading] = useState(true);
   const [shopStatus, setShopStatus] = useState({ isOpen: false, todayHours: "", shopName: "" });
 
   useEffect(() => {
@@ -156,9 +158,26 @@ const page = () => {
       }
     };
 
+    const fetchSpecialOffer = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/special-offer`
+        );
+        const result = await response.json();
+        if (result.success && result.data) {
+          setSpecialOffer(result.data);
+        }
+      } catch (error) {
+        console.error("Error fetching special offer:", error);
+      } finally {
+        setSpecialOfferLoading(false);
+      }
+    };
+
     fetchCombos();
     fetchUserChoices();
     fetchPizzas();
+    fetchSpecialOffer();
 
     // Cleanup interval on component unmount
     return () => clearInterval(interval);
@@ -210,6 +229,101 @@ const page = () => {
                 {' '}• Today: {shopStatus.todayHours}
               </div>
             </div>
+            
+            {/* Review Images Section */}
+            <style jsx>{`
+              .review-desktop { display: flex; justify-content: center; align-items: center; gap: 25px; }
+              .review-mobile { display: none; }
+              @media (max-width: 768px) {
+                .review-desktop { display: none; }
+                .review-mobile { display: block; }
+              }
+            `}</style>
+            <div className="review-images" style={{ 
+              marginTop: '15px',
+              marginBottom: '15px'
+            }}>
+              {/* Desktop View - All in one line with rating.jpg center */}
+              <div className="review-desktop">
+                <img
+                  src="assets/images/review/hygen_ratting.png"
+                  alt="Hygiene Rating"
+                  style={{ 
+                    height: '110px',
+                    width: 'auto',
+                    borderRadius: '10px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                  }}
+                />
+                <img
+                  src="assets/images/review/rating.jpg"
+                  alt="Rating"
+                  style={{ 
+                    height: '110px',
+                    width: 'auto',
+                    borderRadius: '10px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                  }}
+                />
+                <img
+                  src="assets/images/review/MarysMeals.jpg"
+                  alt="Mary's Meals"
+                  style={{ 
+                    height: '110px',
+                    width: 'auto',
+                    borderRadius: '10px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                  }}
+                />
+              </div>
+              
+              {/* Mobile View - rating.jpg on separate line */}
+              <div className="review-mobile">
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: '15px',
+                  marginBottom: '15px'
+                }}>
+                  <img
+                    src="assets/images/review/hygen_ratting.png"
+                    alt="Hygiene Rating"
+                    style={{ 
+                      height: '70px',
+                      width: 'auto',
+                      borderRadius: '10px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                    }}
+                  />
+                  <img
+                    src="assets/images/review/MarysMeals.jpg"
+                    alt="Mary's Meals"
+                    style={{ 
+                      height: '70px',
+                      width: 'auto',
+                      borderRadius: '10px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                    }}
+                  />
+                </div>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}>
+                  <img
+                    src="assets/images/review/rating.jpg"
+                    alt="Rating"
+                    style={{ 
+                      height: '70px',
+                      width: 'auto',
+                      borderRadius: '10px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            
             <h1>{shopStatus.shopName}</h1>
             
             <img
@@ -223,7 +337,7 @@ const page = () => {
             </Link>
           </div>
         </div>
-
+{/* 
         <div className="hero-shapes">
           <div className="shape one">
             <img src="assets/images/shapes/hero-shape1.png" alt="Hero Shape" />
@@ -234,7 +348,7 @@ const page = () => {
           <div className="shape five">
             <img src="assets/images/shapes/hero-shape5.png" alt="Hero Shape" />
           </div>
-        </div>
+        </div> */}
       </section>
       {/* Hero Area End */}
 
@@ -352,7 +466,7 @@ const page = () => {
       <div className="headline-area mb-105 rmb-85 rel z-1">
         <span className="marquee-wrap white-text">
           <span className="marquee-inner left">
-            <span className="marquee-item">Italian pizza</span>
+            <span className="marquee-item">{shopStatus.shopName}</span>
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
@@ -366,7 +480,7 @@ const page = () => {
             </span>
           </span>
           <span className="marquee-inner left">
-            <span className="marquee-item">Italian pizza</span>
+            <span className="marquee-item">{shopStatus.shopName}</span>
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
@@ -380,7 +494,7 @@ const page = () => {
             </span>
           </span>
           <span className="marquee-inner left">
-            <span className="marquee-item">Italian pizza</span>
+            <span className="marquee-item">{shopStatus.shopName}</span>
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
@@ -395,12 +509,12 @@ const page = () => {
           </span>
         </span>
         <div className="headline-shapes">
-          <div className="shape one">
+          {/* <div className="shape one">
             <img src="assets/images/shapes/tomato.png" alt="Shape" />
           </div>
           <div className="shape two">
             <img src="assets/images/shapes/burger.png" alt="Shape" />
-          </div>
+          </div> */}
         </div>
       </div>
       {/* Headline Area end */}
@@ -510,14 +624,14 @@ const page = () => {
             </div>
           </div>
         </div>
-        <div className="testimonials-shapes">
+        {/* <div className="testimonials-shapes">
           <div className="shape one">
             <img src="assets/images/shapes/chicken-menu1.png" alt="Shape" />
           </div>
           <div className="shape two">
             <img src="assets/images/shapes/chicken-menu2.png" alt="Shape" />
           </div>
-        </div>
+        </div> */}
 
         <div className="custom-button-container">
           <Link href="menu-pizza" className="order-now-btn">
@@ -531,7 +645,7 @@ const page = () => {
       <div className="headline-area bgc-black pt-120 rpt-90 rel z-2">
         <span className="marquee-wrap white-text">
           <span className="marquee-inner left">
-            <span className="marquee-item">Italian pizza</span>
+            <span className="marquee-item">{shopStatus.shopName}</span>
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
@@ -545,7 +659,7 @@ const page = () => {
             </span>
           </span>
           <span className="marquee-inner left">
-            <span className="marquee-item">Italian pizza</span>
+            <span className="marquee-item">{shopStatus.shopName}</span>
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
@@ -559,7 +673,7 @@ const page = () => {
             </span>
           </span>
           <span className="marquee-inner left">
-            <span className="marquee-item">Italian pizza</span>
+            <span className="marquee-item">{shopStatus.shopName}</span>
             <span className="marquee-item">
               <i className="flaticon-star" />
             </span>
@@ -573,84 +687,89 @@ const page = () => {
             </span>
           </span>
         </span>
-        <div className="headline-shapes">
+        {/* <div className="headline-shapes">
           <div className="shape one">
             <img src="assets/images/shapes/tomato.png" alt="Shape" />
           </div>
           <div className="shape two">
             <img src="assets/images/shapes/burger.png" alt="Shape" />
           </div>
-        </div>
+        </div> */}
       </div>
       {/* Headline Area end */}
 
       {/* Special Offer Area start */}
-      {/* <section className="special-offer-area-two bgc-black pt-105 rpt-85 pb-130 rpb-100 rel z-1">
-        <div className="container">
-          <div className="row align-items-center">
-            <div className="col-lg-5">
-              <div
-                className="offer-content-two text-white rmb-55"
-                data-aos="fade-right"
-                data-aos-duration={1500}
-                data-aos-offset={50}
-              >
-                <img
-                  src="assets/images/offer/special-food.png"
-                  alt="Special Food"
-                />
-                <div className="section-title mt-45 mb-25">
-                  <h2>Buy Any 2 Pizzas</h2>
-                </div>
-                <p className="ms-0">
-                 comming soon...
-                </p>
-                <Link href="menu-pizza" className="theme-btn mt-15">
-                  order now <i className="far fa-arrow-alt-right" />
-                </Link>
-              </div>
-            </div>
-            <div className="col-lg-7">
-              <div
-                className="offer-image style-two style-three"
-                data-aos="fade-left"
-                data-aos-duration={1500}
-                data-aos-offset={50}
-              >
-                <img
-                  src="assets/images/offer/offer-pizza-min.png"
-                  alt="Pizza Image"
-                />
+      {!specialOfferLoading && specialOffer && specialOffer.isActive && (
+        <section className="special-offer-area-two bgc-black pt-105 rpt-85 pb-130 rpb-100 rel z-1">
+          <div className="container">
+            <div className="row align-items-center">
+              <div className="col-lg-5">
                 <div
-                  className="offer-badge"
-                  style={{
-                    backgroundImage: "url(assets/images/shapes/about-star.png)",
-                  }}
+                  className="offer-content-two text-white rmb-55"
+                  data-aos="fade-right"
+                  data-aos-duration={1500}
+                  data-aos-offset={50}
                 >
-                  <span>
-                    Buy Any 2 
-                    <br />
-                    <span className="price">£15.95</span>
+                  <img
+                    src="assets/images/offer/special-food.png"
+                    alt="Special Food"
+                  />
+                  <div className="section-title mt-45 mb-25">
+                    <h2>{specialOffer.title}</h2>
+                  </div>
+                  <p className="ms-0">
+                    {specialOffer.description || 'Special offer available now!'}
+                  </p>
+                  <Link 
+                    href={specialOffer.orderUrl || "menu-pizza"} 
+                    className="theme-btn mt-15"
+                  >
+                    order now <i className="far fa-arrow-alt-right" />
+                  </Link>
+                </div>
+              </div>
+              <div className="col-lg-7">
+                <div
+                  className="offer-image style-two style-three"
+                  data-aos="fade-left"
+                  data-aos-duration={1500}
+                  data-aos-offset={50}
+                >
+                  <img
+                    src="assets/images/offer/offer-pizza-min.png"
+                    alt="Pizza Image"
+                  />
+                  <div
+                    className="offer-badge"
+                    style={{
+                      backgroundImage: "url(assets/images/shapes/about-star.png)",
+                    }}
+                  >
+                    <span>
+                      {specialOffer.offerText}
+                      <br />
+                      <span className="price">£{specialOffer.price}</span>
+                    </span>
+                  </div>
+                  <span className="marquee-wrap style-two text-white">
+                    <span className="marquee-inner left">pizza combo deal</span>
+                    <span className="marquee-inner left">pizza combo deal</span>
+                    <span className="marquee-inner left">pizza combo deal</span>
                   </span>
                 </div>
-                <span className="marquee-wrap style-two text-white">
-                  <span className="marquee-inner left">pizza combo deal</span>
-                  <span className="marquee-inner left">pizza combo deal</span>
-                  <span className="marquee-inner left">pizza combo deal</span>
-                </span>
               </div>
             </div>
           </div>
-        </div>
-        <div className="testimonials-shapes">
-          <div className="shape one">
-            <img src="assets/images/shapes/hero-shape5.png" alt="Shape" />
+          <div className="testimonials-shapes">
+            <div className="shape one">
+              <img src="assets/images/shapes/hero-shape5.png" alt="Shape" />
+            </div>
+            <div className="shape two">
+              <img src="assets/images/shapes/hero-shape3.png" alt="Shape" />
+            </div>
           </div>
-          <div className="shape two">
-            <img src="assets/images/shapes/hero-shape3.png" alt="Shape" />
-          </div>
-        </div>
-      </section> */}
+        </section>
+      )}
       {/* Special Offer Area end */}
 
       {/* Testimonials Area start */}

@@ -474,14 +474,14 @@ const RestaurantMenu = ({
           </Tab.Content>
         </Tab.Container>
       </div>
-      <div className="testimonials-shapes d-none d-md-block">
+      {/* <div className="testimonials-shapes d-none d-md-block">
         <div className="shape one">
           <img src="assets/images/shapes/chicken-menu1.png" alt="Shape" />
         </div>
         <div className="shape two">
           <img src="assets/images/shapes/chicken-menu2.png" alt="Shape" />
         </div>
-      </div>
+      </div> */}
     </section>
   );
 };

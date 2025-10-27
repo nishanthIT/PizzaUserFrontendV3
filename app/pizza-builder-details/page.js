@@ -2,174 +2,402 @@
 import FixedBtn from "@/components/custom/FixedBtn";
 import WellFoodLayout from "@/layout/WellFoodLayout";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useState, Suspense } from "react";
-import { API_URL } from "@/services/config";
-import PizzaLoader from "@/components/pizzaLoader";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
-import { addToCart } from "@/features/cart/cartSlice";
-import Counter from "@/components/Counter";
+import { addItem } from "../../features/cart/cartSlice.js";
+import React, { useEffect, useState, useRef, Suspense } from "react";
 import axios from "axios";
+import PizzaLoader from "@/components/pizzaLoader";
 
 const PizzaBuilderDetailsContent = () => {
-  const [deal, setDeal] = useState(null);
-  const [selectedBase, setSelectedBase] = useState(null);
-  const [selectedSauce, setSelectedSauce] = useState(null);
-  const [selectedSize, setSelectedSize] = useState(null);
-  const [selectedToppings, setSelectedToppings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
-  
+  const dispatch = useDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const dispatch = useDispatch();
+
   const dealId = searchParams.get("id");
-  const fromMenu = searchParams.get("fromMenu");
+  const maxToppingsParam = parseInt(searchParams.get("maxToppings")) || 5;
+  
+  const [deal, setDeal] = useState(null);
+  const [allToppings, setAllToppings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Pizza customization states - exactly like product-details
+  const [size, setSize] = useState("Medium");
+  const [toppings, setToppings] = useState([]);
+  const [quantity, setQuantity] = useState(1);
+  const [pizzaBase, setPizzaBase] = useState("Regular Crust");
+  const [initialBasePrice, setInitialBasePrice] = useState(0);
+  const [finalPrice, setFinalPrice] = useState(0);
+  const [showExtraChargeWarning, setShowExtraChargeWarning] = useState(false);
+  const [warningTopping, setWarningTopping] = useState(null);
+  const [showToppingValidation, setShowToppingValidation] = useState(false);
 
+  // Get total toppings count
+  const getTotalToppingsCount = () => {
+    return toppings.reduce((sum, topping) => sum + topping.quantity, 0);
+  };
+
+  // Check if adding more toppings would exceed max free toppings
+  const wouldExceedMaxToppings = (currentCount = null) => {
+    const totalCount = currentCount !== null ? currentCount : getTotalToppingsCount();
+    return totalCount >= maxToppingsParam;
+  };
+
+  // Check for mobile screen size
   useEffect(() => {
-    if (!dealId) {
-      setError("Invalid deal ID");
-      setLoading(false);
-      return;
-    }
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
-    fetchDealDetails();
+  // Fetch data
+  useEffect(() => {
+    const fetchData = async () => {
+      console.log("🍕 Fetching pizza builder data for dealId:", dealId);
+      try {
+        // Fetch deal data and all toppings
+        console.log("🔄 Making API calls...");
+        const [dealResponse, toppingsResponse] = await Promise.all([
+          axios.get(`http://localhost:3003/api/pizza-builder-deals/${dealId}`),
+          axios.get(`http://localhost:3003/api/getAllToppings`)
+        ]);
+
+        console.log("✅ Deal response:", dealResponse.data);
+        console.log("✅ Toppings response:", toppingsResponse);
+        console.log("✅ Toppings response data:", toppingsResponse.data);
+        console.log("✅ Toppings response length:", toppingsResponse.data?.length);
+
+        let dealData = null;
+        if (dealResponse.data) {
+          dealData = dealResponse.data;
+          setDeal(dealData);
+          console.log("✅ Deal set:", dealData.name);
+          console.log("✅ Available toppings for this deal:", dealData.toppingsData || dealData.availableToppings);
+          
+          // Set initial base price using medium price
+          const mediumPrice = Number(dealData.mediumPrice) || 0;
+          setInitialBasePrice(mediumPrice);
+          setFinalPrice(mediumPrice);
+        } else {
+          console.error("❌ No deal data in response");
+        }
+
+        // Process toppings separately - check if toppings response has data
+        const toppingsData = toppingsResponse.data || toppingsResponse || [];
+        console.log("🔍 Actual toppings data:", toppingsData);
+        
+        if (toppingsData && Array.isArray(toppingsData) && toppingsData.length > 0 && dealData?.toppingsData) {
+          // Use new toppingsData format {id: name} instead of availableToppings array
+          const availableToppingsObj = dealData.toppingsData || dealData.availableToppings;
+          const allToppingsData = toppingsData;
+          
+          console.log("🔄 Processing toppings...");
+          console.log("Available toppings object:", availableToppingsObj);
+          console.log("All toppings from API:", allToppingsData.length);
+          
+          // Handle both old array format and new {id: name} format for backward compatibility
+          let toppingEntries = [];
+          if (typeof availableToppingsObj === 'object' && !Array.isArray(availableToppingsObj)) {
+            // New format: {id: name}
+            toppingEntries = Object.entries(availableToppingsObj);
+            console.log("✅ Using new {id: name} format");
+          } else if (Array.isArray(availableToppingsObj)) {
+            // Old format: [name1, name2]
+            toppingEntries = availableToppingsObj.map(name => [null, name]);
+            console.log("⚠️ Using legacy array format");
+          }
+          
+          // Create toppings array from the entries
+          const dealToppings = toppingEntries.map(([toppingId, toppingName]) => {
+            // Find the topping data from API response
+            const toppingData = allToppingsData.find(t => t.id === toppingId || t.name === toppingName);
+            console.log(`🔍 Processing ${toppingName} (ID: ${toppingId}):`, toppingData ? `Found with price ${toppingData.additionalToppingCost}` : 'Not found in API');
+            
+            return {
+              id: toppingData?.id || toppingId || toppingName, // Use actual ID, fallback to provided ID, then name
+              name: toppingName,
+              price: Number(toppingData?.additionalToppingCost) || 0,
+              quantity: 0, // All toppings start at 0
+              included: false,
+            };
+          });
+          
+          console.log("✅ Final deal toppings created:", dealToppings.length, dealToppings);
+          setToppings(dealToppings);
+          setAllToppings(dealToppings);
+        } else {
+          console.error("❌ Missing data for toppings processing:", {
+            toppingsResponseExists: !!toppingsResponse,
+            toppingsDataExists: !!toppingsData,
+            toppingsDataIsArray: Array.isArray(toppingsData),
+            toppingsDataLength: toppingsData?.length || 0,
+            dealData: !!dealData,
+            toppingsData: !!dealData?.toppingsData,
+            availableToppings: !!dealData?.availableToppings, // Legacy fallback
+          });
+          
+          // Fallback: create toppings without API pricing
+          const fallbackToppingsSource = dealData?.toppingsData || dealData?.availableToppings;
+          if (fallbackToppingsSource) {
+            console.log("🔄 Creating fallback toppings without API pricing...");
+            
+            let fallbackToppings = [];
+            if (typeof fallbackToppingsSource === 'object' && !Array.isArray(fallbackToppingsSource)) {
+              // New format: {id: name}
+              fallbackToppings = Object.entries(fallbackToppingsSource).map(([toppingId, toppingName]) => ({
+                id: toppingId,
+                name: toppingName,
+                price: 1.0, // Default price
+                quantity: 0,
+                included: false,
+              }));
+            } else if (Array.isArray(fallbackToppingsSource)) {
+              // Old format: [name1, name2]
+              fallbackToppings = fallbackToppingsSource.map((toppingName, index) => ({
+                id: `fallback-${index}`,
+                name: toppingName,
+                price: 1.0, // Default price
+                quantity: 0,
+                included: false,
+              }));
+            }
+            
+            console.log("✅ Fallback toppings created:", fallbackToppings.length);
+            setToppings(fallbackToppings);
+            setAllToppings(fallbackToppings);
+          }
+        }
+      } catch (error) {
+        console.error("❌ Error fetching data:", error);
+        console.error("❌ Error details:", error.response?.data || error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (dealId) {
+      fetchData();
+    }
   }, [dealId]);
 
-  const fetchDealDetails = async () => {
-    try {
-      setLoading(true);
-      const allowInactive = fromMenu === 'true';
-      const url = `${API_URL}/getPizzaBuilderDeal/${dealId}${allowInactive ? '?allowInactive=true' : ''}`;
-      
-      console.log("🔍 Fetching deal from:", url);
-      const response = await axios.get(url);
-      console.log("🔍 Deal response:", response.data);
-      setDeal(response.data);
-      
-      // Auto-select first base, sauce, and size if only one option available
-      if (response.data.availableBases?.length === 1) {
-        setSelectedBase(response.data.availableBases[0]);
-      }
-      if (response.data.availableSauces?.length === 1) {
-        setSelectedSauce(response.data.availableSauces[0]);
-      }
-      if (response.data.availableSizes?.length === 1) {
-        setSelectedSize(response.data.availableSizes[0]);
-      }
-    } catch (error) {
-      console.error("Error fetching pizza builder deal:", error);
-      setError("Failed to load deal. Please try again later.");
-    } finally {
-      setLoading(false);
+  // Get size multiplier for dynamic topping pricing - same as product-details
+  const getSizeMultiplier = () => {
+    switch (size) {
+      case "Large":
+        return 1.5; // 50% extra
+      case "Super Size":
+        return 2; // 100% extra
+      default:
+        return 1; // Medium is base
     }
   };
 
-  const handleBaseSelect = (base) => {
-    setSelectedBase(base);
+  // Get current base price based on selected size
+  const getCurrentBasePrice = () => {
+    if (!deal) return 0;
+    
+    switch (size) {
+      case "Large":
+        return Number(deal.largePrice) || 0;
+      case "Super Size":
+        return Number(deal.superSizePrice) || 0;
+      default:
+        return Number(deal.mediumPrice) || 0;
+    }
   };
 
-  const handleSauceSelect = (sauce) => {
-    setSelectedSauce(sauce);
-  };
+  // Calculate price - same logic as product-details but with pizza builder pricing
+  const getPrice = () => {
+    if (!deal) return 0;
 
-  const handleSizeSelect = (size) => {
-    setSelectedSize(size);
-  };
-
-  const handleToppingToggle = (topping) => {
-    setSelectedToppings(prev => {
-      const exists = prev.find(t => t.id === topping.id);
-      if (exists) {
-        return prev.filter(t => t.id !== topping.id);
-      } else {
-        // Check if max toppings reached
-        if (prev.length >= deal.maxToppings) {
-          alert(`You can select maximum ${deal.maxToppings} toppings`);
-          return prev;
+    const currentBasePrice = getCurrentBasePrice();
+    const sizeMultiplier = getSizeMultiplier();
+    
+    // Calculate topping costs - Pizza Builder mode: charge for extras beyond maxToppingsParam
+    let totalToppingCost = 0;
+    const totalToppingUnits = toppings.reduce((sum, top) => sum + top.quantity, 0);
+    const freeToppings = maxToppingsParam;
+    const extraToppings = Math.max(0, totalToppingUnits - freeToppings);
+    
+    if (extraToppings > 0) {
+      let extraUnitsRemaining = extraToppings;
+      
+      toppings.forEach((top) => {
+        if (top.quantity > 0 && extraUnitsRemaining > 0) {
+          const adjustedPrice = top.price * sizeMultiplier;
+          const unitsToCharge = Math.min(top.quantity, extraUnitsRemaining);
+          totalToppingCost += unitsToCharge * adjustedPrice;
+          extraUnitsRemaining -= unitsToCharge;
         }
-        return [...prev, topping];
+      });
+    }
+
+    // Add stuffed crust pricing if selected - same as product-details
+    let calculatedPrice = currentBasePrice + totalToppingCost;
+    if (pizzaBase.includes("Stuffed Crust")) {
+      switch (size) {
+        case "Large":
+          calculatedPrice += 3;
+          break;
+        case "Super Size":
+          calculatedPrice += 4;
+          break;
+        default:
+          calculatedPrice += 2;
+          break;
       }
-    });
+    }
+
+    return Number(calculatedPrice * quantity);
   };
 
-  const calculatePrice = () => {
-    if (!selectedSize || !deal) return 0;
+  // Handle topping quantity changes with max topping logic
+  const updatedToppingQuantity = (index, operation) => {
+    const currentTotalCount = getTotalToppingsCount();
+    const currentTopping = toppings[index];
     
-    // Parse sizePricing if it's a string
-    let sizePricing = deal.sizePricing;
-    if (typeof sizePricing === 'string') {
-      try {
-        sizePricing = JSON.parse(sizePricing);
-      } catch (e) {
-        sizePricing = {};
+    if (operation === "add") {
+      // Check if this would exceed max free toppings
+      if (currentTotalCount >= maxToppingsParam) {
+        // Show warning popup about extra charges
+        setWarningTopping({
+          name: currentTopping.name,
+          price: currentTopping.price,
+          index: index
+        });
+        setShowExtraChargeWarning(true);
+        return; // Don't add yet, wait for user confirmation
       }
     }
     
-    const basePrice = sizePricing[selectedSize] || 0;
-    return basePrice * quantity;
+    // Proceed with normal quantity update
+    setToppings((prevToppings) =>
+      prevToppings.map((topping, idx) =>
+        idx === index
+          ? {
+              ...topping,
+              quantity:
+                operation === "add"
+                  ? Math.min(topping.quantity + 1, 5)
+                  : Math.max(topping.quantity - 1, 0),
+            }
+          : topping
+      )
+    );
   };
 
-  const canAddToCart = () => {
-    return selectedBase && selectedSauce && selectedSize && selectedToppings.length > 0;
+  // Confirm adding extra topping with charge
+  const confirmExtraTopping = () => {
+    if (warningTopping) {
+      setToppings((prevToppings) =>
+        prevToppings.map((topping, idx) =>
+          idx === warningTopping.index
+            ? {
+                ...topping,
+                quantity: Math.min(topping.quantity + 1, 5),
+              }
+            : topping
+        )
+      );
+    }
+    setShowExtraChargeWarning(false);
+    setWarningTopping(null);
   };
 
-  const handleAddToCart = async () => {
-    if (!canAddToCart()) {
-      alert("Please select base, sauce, size, and at least one topping");
+  // Cancel adding extra topping
+  const cancelExtraTopping = () => {
+    setShowExtraChargeWarning(false);
+    setWarningTopping(null);
+  };
+
+  // Handle quantity changes - same as product-details
+  const handleIncrease = (event) => {
+    event.preventDefault();
+    if (quantity < 10) {
+      setQuantity(quantity + 1);
+    }
+  };
+
+  const handleDecrease = (event) => {
+    event.preventDefault();
+    if (quantity > 1) {
+      setQuantity(quantity - 1);
+    }
+  };
+
+  // Handle add to cart - same structure as product-details
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    
+    // Check if at least one topping is selected
+    const totalToppingsSelected = getTotalToppingsCount();
+    if (totalToppingsSelected === 0) {
+      setShowToppingValidation(true);
       return;
     }
-
-    setIsAddingToCart(true);
     
-    try {
-      const cartItem = {
-        pizzaBuilderDealId: deal.id,
-        selectedBase: selectedBase,
-        selectedSauce: selectedSauce,
-        selectedSize: selectedSize,
-        selectedToppings: selectedToppings.map(t => ({
-          id: t.id,
-          name: t.name
-        })),
-        size: selectedSize,
-        quantity: quantity,
-        basePrice: calculatePrice() / quantity,
-        finalPrice: calculatePrice(),
-        name: deal.name,
-        description: `${selectedBase} • ${selectedSauce} • ${selectedSize} • ${selectedToppings.map(t => t.name).join(', ')}`
-      };
-
-      await dispatch(addToCart(cartItem)).unwrap();
-      router.push("/cart");
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      alert("Failed to add to cart. Please try again.");
-    } finally {
-      setIsAddingToCart(false);
+    // **FIXED: Only send selected toppings with quantity > 0**
+    const selectedToppings = toppings.filter(t => t.quantity > 0);
+    
+    console.log("🛒 DEBUG - All toppings:", toppings.length);
+    console.log("🛒 DEBUG - All toppings with quantities:", toppings.map(t => `${t.name}: ${t.quantity}`));
+    console.log("🛒 DEBUG - Selected toppings:", selectedToppings.length);
+    console.log("🛒 DEBUG - Selected toppings details:", selectedToppings.map(t => `${t.name}: ${t.quantity}`));
+    
+    // **ADDITIONAL CHECK: Ensure we're only sending toppings with quantity > 0**
+    const cleanSelectedToppings = selectedToppings.filter(t => t.quantity && t.quantity > 0);
+    console.log("🛒 DEBUG - Clean selected toppings:", cleanSelectedToppings.length);
+    
+    const cartItem = {
+      id: dealId,
+      title: deal?.name || "Custom Pizza",
+      img: null, // Pizza builder doesn't have specific images
+      price: Number(getPrice()),
+      eachprice: Number(getPrice() / quantity),
+      ingredients: [], // No ingredients for pizza builder
+      toppings: cleanSelectedToppings, // Only actually selected toppings
+      quantity: Number(quantity),
+      size: size,
+      pizzaBase: pizzaBase,
+      isPizzaBuilder: true,
+      pizzaBuilderDealId: dealId, // Add explicit Pizza Builder deal ID
+      maxToppings: maxToppingsParam,
+    };
+    
+    console.log("🛒 Final cart item toppings count:", cartItem.toppings.length);
+    console.log("🛒 Final cart item toppings:", cartItem.toppings.map(t => `${t.name}(${t.quantity})`));
+    
+    if (quantity > 0) {
+      dispatch(addItem(cartItem));
+      
+      // Redirect to cart after successful add
+      router.push('/cart');
+    } else {
+      console.error("Quantity must be greater than 0");
     }
   };
 
   if (loading) {
-    return (
-      <WellFoodLayout>
-        <PizzaLoader />
-      </WellFoodLayout>
-    );
+    console.log("🔄 Still loading...", { loading, deal: !!deal });
+    return <PizzaLoader />;
   }
 
-  if (error || !deal) {
+  if (!deal) {
+    console.log("❌ No deal found, dealId:", dealId);
     return (
       <WellFoodLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-            <p className="mb-4">{error || "Deal not found"}</p>
-            <Link href="/" className="btn btn-primary">
-              Return to Home
-            </Link>
+        <div className="container">
+          <div className="text-center py-5">
+            <h2>Pizza Builder not found</h2>
+            <p>Deal ID: {dealId}</p>
+            <p>Debug: Check browser console for API errors</p>
           </div>
         </div>
       </WellFoodLayout>
@@ -178,353 +406,629 @@ const PizzaBuilderDetailsContent = () => {
 
   return (
     <WellFoodLayout>
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '20px' }}>
-        {/* Deal Header */}
-        <div style={{ marginBottom: '30px', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '10px', color: '#2d3748' }}>
-            {deal.name}
-          </h1>
-          {deal.description && (
-            <p style={{ color: '#4a5568', fontSize: '1.1rem', marginBottom: '10px' }}>
-              {deal.description}
-            </p>
-          )}
-          <p style={{ color: '#718096', fontSize: '0.9rem' }}>
-            Customize your pizza: Base • Sauce • Size • Up to {deal.maxToppings} Toppings
-          </p>
-        </div>
-
-        {/* Step 1: Select Base */}
-        <div style={{ marginBottom: '30px', background: 'white', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: '25px' }}>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '20px', color: '#2d3748', display: 'flex', alignItems: 'center' }}>
-            <span style={{ background: '#e53e3e', color: 'white', width: '40px', height: '40px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginRight: '12px', fontSize: '1.2rem' }}>
-              1
-            </span>
-            Choose Your Base
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px' }}>
-            {deal.availableBases?.map((base) => (
+      <section className="product-details pb-10" style={{ 
+        paddingTop: isMobile ? "80px" : "130px" 
+      }}>
+        <div className="container">
+          <div className="row">
+            <div className="col-lg-6">
               <div
-                key={base}
-                onClick={() => handleBaseSelect(base)}
-                style={{
-                  border: selectedBase === base ? '3px solid #e53e3e' : '2px solid #e2e8f0',
-                  borderRadius: '10px',
-                  padding: '20px',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  background: selectedBase === base ? '#fff5f5' : 'white',
-                  transition: 'all 0.3s',
-                  fontWeight: '600'
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedBase !== base) {
-                    e.currentTarget.style.borderColor = '#fc8181';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedBase !== base) {
-                    e.currentTarget.style.borderColor = '#e2e8f0';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }
-                }}
+                className="product-details-image rmb-55"
+                data-aos="fade-left"
+                data-aos-duration={1500}
+                data-aos-offset={50}
               >
-                <div style={{ color: '#2d3748', fontSize: '1rem' }}>{base}</div>
-                {selectedBase === base && (
-                  <div style={{ marginTop: '8px', color: '#e53e3e', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                    ✓ Selected
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Step 2: Select Sauce */}
-        <div style={{ marginBottom: '30px', background: 'white', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: '25px' }}>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '20px', color: '#2d3748', display: 'flex', alignItems: 'center' }}>
-            <span style={{ background: '#e53e3e', color: 'white', width: '40px', height: '40px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginRight: '12px', fontSize: '1.2rem' }}>
-              2
-            </span>
-            Choose Your Sauce
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px' }}>
-            {deal.availableSauces?.map((sauce) => (
-              <div
-                key={sauce}
-                onClick={() => handleSauceSelect(sauce)}
-                style={{
-                  border: selectedSauce === sauce ? '3px solid #e53e3e' : '2px solid #e2e8f0',
-                  borderRadius: '10px',
-                  padding: '20px',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  background: selectedSauce === sauce ? '#fff5f5' : 'white',
-                  transition: 'all 0.3s',
-                  fontWeight: '600'
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedSauce !== sauce) {
-                    e.currentTarget.style.borderColor = '#fc8181';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedSauce !== sauce) {
-                    e.currentTarget.style.borderColor = '#e2e8f0';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }
-                }}
-              >
-                <div style={{ color: '#2d3748', fontSize: '0.95rem' }}>{sauce}</div>
-                {selectedSauce === sauce && (
-                  <div style={{ marginTop: '8px', color: '#e53e3e', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                    ✓ Selected
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Step 3: Select Size */}
-        <div style={{ marginBottom: '30px', background: 'white', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: '25px' }}>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '20px', color: '#2d3748', display: 'flex', alignItems: 'center' }}>
-            <span style={{ background: '#e53e3e', color: 'white', width: '40px', height: '40px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginRight: '12px', fontSize: '1.2rem' }}>
-              3
-            </span>
-            Choose Size
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-            {deal.availableSizes?.map((size) => {
-              let sizePricing = deal.sizePricing;
-              if (typeof sizePricing === 'string') {
-                try {
-                  sizePricing = JSON.parse(sizePricing);
-                } catch (e) {
-                  sizePricing = {};
-                }
-              }
-              
-              return (
                 <div
-                  key={size}
-                  onClick={() => handleSizeSelect(size)}
+                  className="product-image-wrapper"
                   style={{
-                    border: selectedSize === size ? '3px solid #e53e3e' : '2px solid #e2e8f0',
-                    borderRadius: '10px',
-                    padding: '30px',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    background: selectedSize === size ? '#fff5f5' : 'white',
-                    transition: 'all 0.3s'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (selectedSize !== size) {
-                      e.currentTarget.style.borderColor = '#fc8181';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (selectedSize !== size) {
-                      e.currentTarget.style.borderColor = '#e2e8f0';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }
+                    display: "flex",
+                    justifyContent: "center",
                   }}
                 >
-                  <h3 style={{ fontWeight: 'bold', fontSize: '1.5rem', marginBottom: '10px', color: '#2d3748' }}>
-                    {size.replace('_', ' ')}
-                  </h3>
-                  <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#e53e3e' }}>
-                    £{(sizePricing[size] || 0).toFixed(2)}
+                  <img
+                    className="product-image"
+                    src="/assets/pizza-default.png"
+                    alt="Custom Pizza"
+                    style={{
+                      width: isMobile ? "50%" : "40%",
+                      height: "auto",
+                      objectFit: "contain",
+                      borderRadius: "12px",
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="col-lg-6">
+              <div
+                className="product-details-content"
+                data-aos="fade-right"
+                data-aos-duration={1500}
+                data-aos-offset={50}
+              >
+                <div className="section-title">
+                  <h2
+                    className="mb-4"
+                    style={{
+                      fontSize: "2.5rem",
+                      fontWeight: "700",
+                      color: "#333",
+                    }}
+                  >
+                    {deal.name}
+                  </h2>
+                  
+                  <div className="alert alert-info mb-3" style={{
+                    backgroundColor: "#e7f3ff",
+                    border: "1px solid #b6d7ff",
+                    borderRadius: "8px",
+                    padding: "12px",
+                    fontSize: "1rem",
+                    color: "#0066cc"
+                  }}>
+                    <strong>🍕 Pizza Builder:</strong> Build your perfect pizza with custom size, base, and up to {maxToppingsParam} toppings!<br/>
+                    {/* <small>Available toppings: {toppings.length} selected toppings for this pizza builder</small> */}
+                  </div>
+                  
+                  <p
+                    className="mb-4"
+                    style={{ fontSize: "1.2rem", color: "#666" }}
+                  >
+                    {deal.description || "Create your perfect pizza with our pizza builder. Choose your size, base and toppings."}
                   </p>
-                  {selectedSize === size && (
-                    <div style={{ marginTop: '10px', color: '#e53e3e', fontWeight: 'bold' }}>
-                      ✓ Selected
+
+                  {/* Pizza Base Selection - same as product-details */}
+                  <div className="base-container mb-4">
+                    <h5
+                      className="mb-3"
+                      style={{ fontSize: "1.2rem", fontWeight: "600" }}
+                    >
+                      Pizza Base
+                    </h5>
+                    <div
+                      className="base-options responsive-base-options"
+                      style={{
+                        display: "flex",
+                        gap: "15px",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      {["Regular Crust", "ThinCrust", (() => {
+                        switch (size) {
+                          case "Large":
+                            return "Stuffed Crust +£3";
+                          case "Super Size":
+                            return "Stuffed Crust +£4";
+                          default:
+                            return "Stuffed Crust +£2";
+                        }
+                      })()].map((baseOption) => (
+                        <label
+                          key={baseOption}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            padding: "10px 15px",
+                            borderRadius: "8px",
+                            border: "2px solid",
+                            borderColor: baseOption.includes("Stuffed Crust") 
+                              ? (pizzaBase.includes("Stuffed Crust") ? "#ff6b35" : "#ddd") 
+                              : (pizzaBase === baseOption ? "#ff6b35" : "#ddd"),
+                            backgroundColor: baseOption.includes("Stuffed Crust") 
+                              ? (pizzaBase.includes("Stuffed Crust") ? "#fff4f0" : "#fff") 
+                              : (pizzaBase === baseOption ? "#fff4f0" : "#fff"),
+                            cursor: "pointer",
+                            transition: "all 0.3s ease",
+                          }}
+                        >
+                          <input
+                            type="radio"
+                            name="pizzaBase"
+                            value={baseOption}
+                            checked={baseOption.includes("Stuffed Crust") 
+                              ? pizzaBase.includes("Stuffed Crust") 
+                              : pizzaBase === baseOption}
+                            onChange={() => setPizzaBase(baseOption)}
+                            style={{
+                              display: "none",
+                            }}
+                          />
+                          <span
+                            style={{
+                              fontWeight: baseOption.includes("Stuffed Crust") 
+                                ? (pizzaBase.includes("Stuffed Crust") ? "600" : "400") 
+                                : (pizzaBase === baseOption ? "600" : "400"),
+                              color: baseOption.includes("Stuffed Crust") 
+                                ? (pizzaBase.includes("Stuffed Crust") ? "#ff6b35" : "#333") 
+                                : (pizzaBase === baseOption ? "#ff6b35" : "#333"),
+                            }}
+                          >
+                            {baseOption}
+                          </span>
+                        </label>
+                      ))}
                     </div>
-                  )}
+                  </div>
+
+                  {/* Size Selection - same as product-details */}
+                  <div className="size-container mb-4">
+                    <h5
+                      className="mb-3"
+                      style={{ fontSize: "1.2rem", fontWeight: "600" }}
+                    >
+                      Size Selection
+                    </h5>
+                    <div
+                      className="size-options"
+                      style={{ display: "flex", gap: "15px" }}
+                    >
+                      {["Medium", "Large", "Super Size"].map((sizeOption) => (
+                        <label
+                          key={sizeOption}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            padding: "10px 15px",
+                            borderRadius: "8px",
+                            border: "2px solid",
+                            borderColor:
+                              size === sizeOption ? "#ff6b35" : "#ddd",
+                            backgroundColor:
+                              size === sizeOption ? "#fff4f0" : "#fff",
+                            cursor: "pointer",
+                            transition: "all 0.3s ease",
+                          }}
+                        >
+                          <input
+                            type="radio"
+                            name="size"
+                            value={sizeOption}
+                            checked={size === sizeOption}
+                            onChange={() => setSize(sizeOption)}
+                            style={{ marginRight: "8px" }}
+                          />
+                          <span
+                            style={{
+                              fontWeight: size === sizeOption ? "600" : "400",
+                            }}
+                          >
+                            {sizeOption}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Price Display - same as product-details */}
+                  <div className="price-container mb-4">
+                    <h5 style={{ fontSize: "1.2rem", fontWeight: "600" }}>
+                      Total Price
+                    </h5>
+                    <span
+                      className="price"
+                      style={{
+                        fontSize: "2.2rem",
+                        fontWeight: "700",
+                        color: "#ff6b35",
+                        display: "block",
+                        marginTop: "5px",
+                      }}
+                    >
+                      £{getPrice().toFixed(2)}
+                    </span>
+                  </div>
+
+                  {/* Quantity Controls - same as product-details */}
+                  <form className="add-to-cart mb-4">
+                    <div className="quantity-controls">
+                      <div
+                        className="custom-quantity"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "15px",
+                          marginBottom: "20px",
+                        }}
+                      >
+                        <h5
+                          style={{
+                            margin: "0",
+                            fontSize: "1.2rem",
+                            fontWeight: "600",
+                          }}
+                        >
+                          Quantity
+                        </h5>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            border: "2px solid #eee",
+                            borderRadius: "8px",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <button
+                            type="button"
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              border: "none",
+                              background: "#f5f5f5",
+                              fontSize: "1.2rem",
+                              cursor: quantity <= 1 ? "not-allowed" : "pointer",
+                              opacity: quantity <= 1 ? "0.5" : "1",
+                            }}
+                            disabled={quantity <= 1}
+                            onClick={handleDecrease}
+                          >
+                            -
+                          </button>
+                          <span
+                            style={{
+                              width: "40px",
+                              textAlign: "center",
+                              fontSize: "1.1rem",
+                              fontWeight: "600",
+                            }}
+                          >
+                            {quantity}
+                          </span>
+                          <button
+                            type="button"
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              border: "none",
+                              background: "#f5f5f5",
+                              fontSize: "1.2rem",
+                              cursor: quantity >= 10 ? "not-allowed" : "pointer",
+                              opacity: quantity >= 10 ? "0.5" : "1",
+                            }}
+                            disabled={quantity >= 10}
+                            onClick={handleIncrease}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Add to Cart Button - same as product-details */}
+                    <button
+                      type="submit"
+                      className="theme-btn"
+                      onClick={handleAddToCart}
+                      style={{
+                        padding: "14px 30px",
+                        fontSize: "1.1rem",
+                        fontWeight: "600",
+                        borderRadius: "8px",
+                        background: "#ff6b35",
+                        border: "none",
+                        color: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        transition: "all 0.3s ease",
+                        boxShadow: "0 4px 10px rgba(255, 107, 53, 0.3)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Add to Cart
+                      <i className="far fa-arrow-alt-right" />
+                    </button>
+                  </form>
+
+                  {/* Toppings Section - show available toppings from pizza builder deal */}
+                  <div className="toppings-section mb-4">
+                    <h5
+                      className="mb-3"
+                      style={{
+                        fontSize: "1.2rem",
+                        fontWeight: "600",
+                      }}
+                    >
+                      Available Toppings ({toppings?.length || 0})
+                    </h5>
+                    
+                    {/* Debug info */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>
+                        Debug: Toppings loaded: {toppings?.length || 0} | Deal: {deal?.name || 'Loading...'}
+                      </div>
+                    )}
+                    
+                    {toppings && toppings.length > 0 ? (
+                      <>
+                        {/* Max Toppings Info */}
+                        <div style={{ 
+                          padding: '10px', 
+                          backgroundColor: '#f0f8ff', 
+                          border: '1px solid #b6d7ff',
+                          borderRadius: '6px',
+                          marginBottom: '15px',
+                          fontSize: '0.9rem',
+                          color: '#0066cc'
+                        }}>
+                          <strong>Free Toppings:</strong> {getTotalToppingsCount()}/{maxToppingsParam} used
+                          {getTotalToppingsCount() >= maxToppingsParam && (
+                            <span style={{ color: '#ff6b35', marginLeft: '10px' }}>
+                              ⚠️ Extra toppings will be charged
+                            </span>
+                          )}
+                        </div>
+
+                        <ul
+                          className="toppings-list"
+                          style={{ listStyle: "none", padding: "0" }}
+                        >
+                          {toppings.map((topping, index) => {
+                            const sizeMultiplier = getSizeMultiplier();
+                            const adjustedPrice = topping.price * sizeMultiplier;
+                            const currentTotalCount = getTotalToppingsCount();
+                            // Only show price when at max limit or beyond
+                            const showPrice = currentTotalCount >= maxToppingsParam;
+
+                            return (
+                              <li
+                                key={`topping-${topping.id}-${index}`}
+                                className="topping-item"
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  padding: "12px 15px",
+                                  margin: "8px 0",
+                                  borderRadius: "8px",
+                                  backgroundColor: "#f9f9f9",
+                                  boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+                                }}
+                              >
+                                <span style={{ fontWeight: "500" }}>
+                                  {topping.name}
+                                  {showPrice && (
+                                    <span style={{ color: '#ff6b35', fontSize: '0.9rem' }}>
+                                      {' '}- £{adjustedPrice.toFixed(1)}
+                                    </span>
+                                  )}
+                                </span>
+                                <div
+                                  className="topping-controls"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "10px",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      border: "1px solid #ddd",
+                                      borderRadius: "6px",
+                                      overflow: "hidden",
+                                    }}
+                                  >
+                                    <button
+                                      type="button"
+                                      style={{
+                                        width: "30px",
+                                        height: "30px",
+                                        border: "none",
+                                        background: "#f0f0f0",
+                                        cursor:
+                                          topping.quantity <= 0
+                                            ? "not-allowed"
+                                            : "pointer",
+                                        opacity: topping.quantity <= 0 ? "0.5" : "1",
+                                      }}
+                                      disabled={topping.quantity <= 0}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        updatedToppingQuantity(index, "subtract");
+                                      }}
+                                    >
+                                      -
+                                    </button>
+                                    <span
+                                      style={{
+                                        width: "30px",
+                                        textAlign: "center",
+                                      }}
+                                    >
+                                      {topping.quantity}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      style={{
+                                        width: "30px",
+                                        height: "30px",
+                                        border: "none",
+                                        background: "#f0f0f0",
+                                        cursor:
+                                          topping.quantity >= 5
+                                            ? "not-allowed"
+                                            : "pointer",
+                                        opacity:
+                                          topping.quantity >= 5
+                                            ? "0.5"
+                                            : "1",
+                                      }}
+                                      disabled={topping.quantity >= 5}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        updatedToppingQuantity(index, "add");
+                                      }}
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </>
+                    ) : (
+                      <div style={{ 
+                        padding: '20px', 
+                        textAlign: 'center', 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: '8px',
+                        color: '#666'
+                      }}>
+                        {loading ? 'Loading toppings...' : 'No toppings available for this pizza builder'}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Step 4: Select Toppings */}
-        <div style={{ marginBottom: '30px', background: 'white', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: '25px' }}>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '10px', color: '#2d3748', display: 'flex', alignItems: 'center' }}>
-            <span style={{ background: '#e53e3e', color: 'white', width: '40px', height: '40px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginRight: '12px', fontSize: '1.2rem' }}>
-              4
-            </span>
-            Choose Your Toppings
-          </h2>
-          <p style={{ color: '#4a5568', marginBottom: '20px', marginLeft: '52px', fontSize: '1rem' }}>
-            Selected: <span style={{ fontWeight: 'bold', color: '#e53e3e', fontSize: '1.2rem' }}>{selectedToppings.length}</span> / {deal.maxToppings}
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
-            {deal.availableToppings?.map((topping) => {
-              const isSelected = selectedToppings.find(t => t.id === topping.id);
-              return (
-                <div
-                  key={topping.id}
-                  onClick={() => handleToppingToggle(topping)}
-                  style={{
-                    border: isSelected ? '3px solid #e53e3e' : '2px solid #e2e8f0',
-                    borderRadius: '8px',
-                    padding: '15px',
-                    cursor: 'pointer',
-                    background: isSelected ? '#fff5f5' : 'white',
-                    transition: 'all 0.3s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = '#fc8181';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = '#e2e8f0';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }
-                  }}
-                >
-                  <span style={{ fontWeight: '600', fontSize: '0.9rem', color: '#2d3748' }}>
-                    {topping.name}
-                  </span>
-                  {isSelected && (
-                    <span style={{ color: '#e53e3e', fontSize: '1.2rem', fontWeight: 'bold' }}>✓</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Quantity and Price Summary */}
-        <div style={{ marginBottom: '150px', background: 'linear-gradient(to right, #fff5f5, #fffaf0)', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: '25px' }}>
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '20px', color: '#2d3748' }}>Order Summary</h3>
-          
-          {/* Selected items preview */}
-          <div style={{ marginBottom: '20px', fontSize: '0.95rem', color: '#4a5568' }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-              <span style={{ fontWeight: '600', width: '100px' }}>Base:</span>
-              <span>{selectedBase || "Not selected"}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-              <span style={{ fontWeight: '600', width: '100px' }}>Sauce:</span>
-              <span>{selectedSauce || "Not selected"}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-              <span style={{ fontWeight: '600', width: '100px' }}>Size:</span>
-              <span>{selectedSize ? selectedSize.replace('_', ' ') : "Not selected"}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-              <span style={{ fontWeight: '600', width: '100px' }}>Toppings:</span>
-              <span style={{ flex: 1 }}>
-                {selectedToppings.length > 0 
-                  ? selectedToppings.map(t => t.name).join(', ')
-                  : "None selected"}
-              </span>
-            </div>
-          </div>
-
-          <div style={{ borderTop: '2px solid #cbd5e0', paddingTop: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2d3748' }}>Quantity</h3>
-              <Counter quantity={quantity} setQuantity={setQuantity} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '2rem', fontWeight: 'bold' }}>
-              <span style={{ color: '#2d3748' }}>Total:</span>
-              <span style={{ color: '#e53e3e' }}>£{calculatePrice().toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Desktop Add to Cart Section */}
-        <div style={{ display: window.innerWidth >= 1024 ? 'block' : 'none', position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '3px solid #e2e8f0', boxShadow: '0 -4px 20px rgba(0,0,0,0.1)', zIndex: 1000 }}>
-          <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: '0.9rem', color: '#4a5568', marginBottom: '5px' }}>
-                {selectedBase || "No base"} • {selectedSauce || "No sauce"} • {selectedSize || "No size"}
-              </p>
-              <p style={{ fontSize: '0.75rem', color: '#718096' }}>
-                {selectedToppings.length > 0 ? `${selectedToppings.map(t => t.name).join(', ')}` : "No toppings selected"}
-              </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
-              <div style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: '0.9rem', color: '#4a5568' }}>Total</p>
-                <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#e53e3e' }}>
-                  £{calculatePrice().toFixed(2)}
-                </p>
               </div>
-              <Counter quantity={quantity} setQuantity={setQuantity} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Fixed Button at bottom - same as product-details */}
+      <FixedBtn
+        price={getPrice()}
+        onAddToCart={handleAddToCart}
+        name={"Add To Cart"}
+        link="/cart"
+      />
+
+      {/* Extra Charge Warning Popup */}
+      {showExtraChargeWarning && warningTopping && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+          }}
+          onClick={cancelExtraTopping}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              padding: '30px',
+              borderRadius: '12px',
+              maxWidth: '400px',
+              width: '90%',
+              textAlign: 'center',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: '2rem', marginBottom: '15px' }}>⚠️</div>
+            <h3 style={{ marginBottom: '15px', color: '#333' }}>Extra Charge Alert</h3>
+            <p style={{ marginBottom: '20px', color: '#666', lineHeight: '1.5' }}>
+              You've reached your {maxToppingsParam} free toppings limit. 
+              Adding <strong>{warningTopping.name}</strong> will cost an extra{' '}
+              <strong style={{ color: '#ff6b35' }}>
+                £{(warningTopping.price * getSizeMultiplier()).toFixed(2)}
+              </strong>
+            </p>
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
               <button
-                onClick={handleAddToCart}
-                disabled={!canAddToCart() || isAddingToCart}
+                onClick={cancelExtraTopping}
                 style={{
-                  padding: '15px 40px',
+                  padding: '12px 24px',
                   borderRadius: '8px',
-                  fontWeight: 'bold',
-                  color: 'white',
-                  fontSize: '1.1rem',
-                  border: 'none',
-                  cursor: canAddToCart() && !isAddingToCart ? 'pointer' : 'not-allowed',
-                  background: canAddToCart() && !isAddingToCart ? '#e53e3e' : '#cbd5e0',
-                  boxShadow: canAddToCart() && !isAddingToCart ? '0 4px 12px rgba(229,62,62,0.3)' : 'none',
-                  transition: 'all 0.3s'
-                }}
-                onMouseEnter={(e) => {
-                  if (canAddToCart() && !isAddingToCart) {
-                    e.currentTarget.style.background = '#c53030';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (canAddToCart() && !isAddingToCart) {
-                    e.currentTarget.style.background = '#e53e3e';
-                  }
+                  border: '2px solid #ddd',
+                  backgroundColor: 'white',
+                  color: '#666',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: '600',
                 }}
               >
-                {isAddingToCart ? "Adding..." : "Add to Cart"}
+                Cancel
+              </button>
+              <button
+                onClick={confirmExtraTopping}
+                style={{
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: '#ff6b35',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  boxShadow: '0 4px 10px rgba(255, 107, 53, 0.3)',
+                }}
+              >
+                Add Anyway
               </button>
             </div>
           </div>
         </div>
+      )}
 
-        {/* Mobile Fixed Button */}
-        <div style={{ display: window.innerWidth < 1024 ? 'block' : 'none', position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '3px solid #e2e8f0', boxShadow: '0 -4px 20px rgba(0,0,0,0.1)', zIndex: 1000, padding: '15px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: '0.75rem', color: '#4a5568' }}>
-                {selectedBase || "No base"} • {selectedSauce || "No sauce"} • {selectedSize || "No size"}
-              </p>
-              <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#e53e3e' }}>£{calculatePrice().toFixed(2)}</p>
-            </div>
-            <Counter quantity={quantity} setQuantity={setQuantity} />
-          </div>
-          <button
-            onClick={handleAddToCart}
-            disabled={!canAddToCart() || isAddingToCart}
+      {/* Topping Selection Required Popup */}
+      {showToppingValidation && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+          }}
+          onClick={() => setShowToppingValidation(false)}
+        >
+          <div
             style={{
-              width: '100%',
-              padding: '15px',
-              borderRadius: '8px',
-              fontWeight: 'bold',
-              color: 'white',
-              border: 'none',
-              cursor: canAddToCart() && !isAddingToCart ? 'pointer' : 'not-allowed',
-              background: canAddToCart() && !isAddingToCart ? '#e53e3e' : '#cbd5e0',
-              fontSize: '1.1rem'
+              backgroundColor: 'white',
+              padding: '30px',
+              borderRadius: '12px',
+              maxWidth: '400px',
+              width: '90%',
+              textAlign: 'center',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-            {isAddingToCart ? "Adding..." : "Add to Cart"}
-          </button>
+            <div style={{ fontSize: '2rem', marginBottom: '15px' }}>🍕</div>
+            <h3 style={{ marginBottom: '15px', color: '#333' }}>Select Your Toppings</h3>
+            <p style={{ marginBottom: '20px', color: '#666', lineHeight: '1.5' }}>
+              Please select at least one topping for your pizza before adding to cart.
+              You can choose up to <strong>{maxToppingsParam} free toppings</strong>!
+            </p>
+            <button
+              onClick={() => setShowToppingValidation(false)}
+              style={{
+                padding: '12px 30px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: '#ff6b35',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: '600',
+                boxShadow: '0 4px 10px rgba(255, 107, 53, 0.3)',
+              }}
+            >
+              Got It!
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </WellFoodLayout>
   );
 };
