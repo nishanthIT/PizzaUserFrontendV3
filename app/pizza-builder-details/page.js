@@ -65,8 +65,8 @@ const PizzaBuilderDetailsContent = () => {
         // Fetch deal data and all toppings
         console.log("🔄 Making API calls...");
         const [dealResponse, toppingsResponse] = await Promise.all([
-          axios.get(`http://localhost:3003/api/pizza-builder-deals/${dealId}`),
-          axios.get(`http://localhost:3003/api/getAllToppings`)
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/pizza-builder-deals/${dealId}`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/getAllToppings`)
         ]);
 
         console.log("✅ Deal response:", dealResponse.data);
