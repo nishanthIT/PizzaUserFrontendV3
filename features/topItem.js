@@ -5,7 +5,7 @@ export const topItems = [
       title: "Beef Burger",
       price: "2",
       decs: "Diverse menu features array of delectable",
-      img: "assets/images/food/pm-food1.png",
+      img: "",
       ingredients: [
         { name: "Cheese", quantity: 1, price: 1.5, included: true },
         { name: "Tomato", quantity: 1, price: 1.3, included: true },

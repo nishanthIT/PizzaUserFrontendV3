@@ -383,7 +383,7 @@ const MenuPizzaPage = () => {
           ? (pizza.imageUrl.startsWith('http') 
               ? pizza.imageUrl 
               : `/${pizza.imageUrl}`)
-          : "/assets/images/food/pm-food1.png",
+          : "",
         type: "pizza",
         ingredients: Array.isArray(pizza?.defaultIngredients)
           ? pizza.defaultIngredients.map((ing) => ({
@@ -420,7 +420,7 @@ const MenuPizzaPage = () => {
         ? (item.imageUrl.startsWith('http') 
             ? item.imageUrl 
             : `${item.imageUrl}`)
-        : "/assets/images/food/pm-food1.png",
+        : "",
       type: "other",
       isOtherItem: true, // Add this flag for better identification
       otherItemId: item?.id, // Keep reference to original ID
@@ -440,7 +440,7 @@ const MenuPizzaPage = () => {
         ? (item.imageUrl.startsWith('http') 
             ? item.imageUrl 
             : `${API_URL}/images/${item.imageUrl}`)
-        : "/assets/images/food/pm-food1.png",
+        : "",
       type: "userChoice",
       isUserChoice: true,
       userChoiceId: item?.id,
@@ -459,7 +459,7 @@ const MenuPizzaPage = () => {
       title: deal.name, // Just the name, no price
       price: "", // No price display
       decs: deal.description || "Customize this pizza with your choice of toppings, base, and size",
-      img: deal.imageUrl || "/assets/images/food/pm-food1.png",
+      img: deal.imageUrl || "",
       type: "pizzaBuilderDeals",
       isPizzaBuilderDeals: true,
       showPriceFrom: false, // Don't show price
@@ -505,7 +505,7 @@ const MenuPizzaPage = () => {
           ? (item.imageUrl.startsWith('http') 
               ? item.imageUrl 
               : `${item.imageUrl}`)
-          : "/assets/images/food/pm-food1.png",
+          : "",
         type: "comboStyle", // Special type for Combo Style items
         isComboStyleItem: true,
         itemId: item?.id, // Add itemId for linking

@@ -532,7 +532,8 @@ const page = () => {
                           ? `url(${userChoice.imageUrl.startsWith('http') 
                               ? userChoice.imageUrl 
                               : `${API_URL}/images/${userChoice.imageUrl}`})`
-                          : `url(/assets/images/food/pm-food1.png)`,
+                          : `none`,
+                        backgroundColor: userChoice.imageUrl ? 'transparent' : 'rgba(255, 165, 0, 0.1)'
                       }}
                     >
                       <h3>{userChoice.name.toUpperCase()}</h3>

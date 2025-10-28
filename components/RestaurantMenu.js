@@ -187,7 +187,7 @@ const getItemImageSrc = (item) => {
     return `${API_URL}/images/other-${item.id}.png`;
   }
   if (item.type === "pizzaBuilderDeals") {
-    return item.img || "/assets/images/food/pm-food1.png";
+    return item.img || "";
   }
   return `${API_URL}/images/pizza-${item.id}.png`;
 };
@@ -406,10 +406,11 @@ const RestaurantMenu = ({
                                 width: "80px", 
                                 height: "80px", 
                                 borderRadius: "8px",
-                                objectFit: "cover"
+                                objectFit: "cover",
+                                display: "block"
                               }}
                               onError={(e) => {
-                                e.target.src = "/assets/images/food/pm-food1.png";
+                                e.target.style.display = "none";
                               }}
                             />
                           </div>

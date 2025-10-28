@@ -221,7 +221,7 @@ const UserChoiceDetailsContent = () => {
       price: parseFloat(userChoice.basePrice), // Cart expects this field
       selectedItems: selectedItems,
       totalPrice: calculateTotalPrice(),
-      img: userChoice.imageUrl || "/assets/images/food/pm-food1.png",
+      img: userChoice.imageUrl || "",
       // Category-specific fields for cart display
       size: "Regular", // Default size
       pizzaBase: hasPizzaCategory ? pizzaBaseInfo : null, // Only set if has pizza category
@@ -318,23 +318,23 @@ const UserChoiceDetailsContent = () => {
               marginBottom: '20px',
               background: '#f8f9fa'
             }}>
-              <img 
-                src={userChoice?.imageUrl 
-                  ? (userChoice.imageUrl.startsWith('http') 
-                      ? userChoice.imageUrl 
-                      : `${API_URL}/images/${userChoice.imageUrl}`)
-                  : "/assets/images/food/pm-food1.png"
-                }
-                alt={userChoice?.name}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover'
-                }}
-                onError={(e) => {
-                  e.target.src = "/assets/images/food/pm-food1.png";
-                }}
-              />
+              {userChoice?.imageUrl && (
+                <img 
+                  src={userChoice.imageUrl.startsWith('http') 
+                    ? userChoice.imageUrl 
+                    : `${API_URL}/images/${userChoice.imageUrl}`
+                  }
+                  alt={userChoice?.name}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover'
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                  }}
+                />
+              )}
             </div>
             
             <h1 style={{ 
