@@ -231,7 +231,7 @@ const MenuPizzaPage = () => {
         // Fetch user choice items for this category
         let userChoiceResponse = [];
         try {
-          const userChoiceUrl = `${API_URL}/getUserChoices?showInactive=true`;
+          const userChoiceUrl = `${API_URL}/getUserChoices`;
           console.log("🔍 User Choice URL:", userChoiceUrl);
           console.log("🔍 Selected Category ID:", selectedCategory);
           
@@ -309,7 +309,7 @@ const MenuPizzaPage = () => {
         console.log("🚀 selectedCategory:", selectedCategory);
         let pizzaBuilderResponse = [];
         try {
-          const pizzaBuilderUrl = `${API_URL}/getPizzaBuilderDeals?categoryId=${selectedCategory}&showInactive=true`;
+          const pizzaBuilderUrl = `${API_URL}/getPizzaBuilderDeals?categoryId=${selectedCategory}`;
           console.log("🔍 Pizza Builder URL:", pizzaBuilderUrl);
           
           const response = await fetch(pizzaBuilderUrl);
